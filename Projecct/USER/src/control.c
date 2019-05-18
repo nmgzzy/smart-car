@@ -12,8 +12,8 @@ uint8 Balance_mode = 0; //0-直立 1-三轮
 
 int BalanceControl(void)
 {
-    static float camera_angle, camera_angle_last;
-    uint8 offset = 0;
+    //static float camera_angle, camera_angle_last;
+    //uint8 offset = 0;
     static uint8 cnt = 0;
     int angle_out = 0;
     cnt++; if(cnt >= 10) cnt = 0;
@@ -66,7 +66,7 @@ int BalanceControl(void)
 
     //if(cnt%5==0) communicate_send(&offset, ANG_, 1);*/
 
-    if((CarAttitude.Pitch > 22 || CarAttitude.Pitch < -35 || myfabs(CarAttitude.Roll) > 20)
+    if((CarAttitude.Pitch > 15 || CarAttitude.Pitch < -40 || myfabs(CarAttitude.Roll) > 20)
        && flag.mode != MODE_DEBUG && time_count>1000)
     {
         flag.lost = 1;
@@ -152,7 +152,7 @@ float ErrorCalculate(uint8 mode)
     static float yaw_integ = 0, mid[3];//, circle_val[5]
     static uint32 tc[5] = {0};
     static uint8 crcl_cnt = 1;
-    int16 sumH, difH, difV, sumHM, sumV, a, b;
+    int16 difH, difV, difX, sumH, sumV, sumHM, sumX;//, a, b;
 
     //float error_a = 0;
     //int8 sgn = 0;
@@ -162,8 +162,10 @@ float ErrorCalculate(uint8 mode)
 
     sumH = ad_data_now[LH]+ad_data_now[RH];
     sumV = ad_data_now[LV]+ad_data_now[RV];
+    sumX = ad_data_now[LX]+ad_data_now[RX];
     difH = ad_data_now[LH]-ad_data_now[RH];
     difV = ad_data_now[LV]-ad_data_now[RV];
+    difX = ad_data_now[LX]-ad_data_now[RX];
     sumHM = sumH + ad_data_now[MD];
 
 
@@ -178,7 +180,7 @@ float ErrorCalculate(uint8 mode)
     //ftestVal[4] = (errorH+errorVH)*50;    ///////////////////////
     //ftestVal[5] = error1*10;              /////////////////////////
 
-    if(Balance_mode == 0)
+    /*if(Balance_mode == 0)
     {
         //--------------检环-------------------
         if(time_count>1000 && sumHM > 3000 && ad_data_now[MD] > 500)
@@ -360,7 +362,7 @@ float ErrorCalculate(uint8 mode)
             {
                 flag_circle_out = 0;
             }
-        }*/
+        }*
     }
     else if(Balance_mode == 1)
     {
@@ -390,7 +392,7 @@ float ErrorCalculate(uint8 mode)
         }
         //--------------检环结束------------------
 
-    }
+    }*/
     return error_out;
 
 /*
@@ -427,7 +429,7 @@ int DirectionControl(void)
 {
     int dir_out = 0;
     float E_error = 0;
-    float error_offset = 0, error_output = 0;
+    float error_offset = 0;
     E_error = ErrorCalculate(Balance_mode);
     //ftestVal[0] = E_error;             /////////////////////
     if(time_count == 1)
@@ -441,6 +443,7 @@ int DirectionControl(void)
         bt[0][6] = bt[0][5] + barrier_delay[0];     bt[1][6] = bt[1][5] + barrier_delay[1];
         bt[0][7] = bt[0][6] + barrier_turn_t[0];    bt[1][7] = bt[1][6] + barrier_turn_t[1];
     }
+    flag.barrier = 0;
     if(flag.barrier)
     {
         barrier_time++;
@@ -470,15 +473,13 @@ int DirectionControl(void)
         pid_dir[Balance_mode].deriv = pid_dir[Balance_mode].error - pid_dir[Balance_mode].preError;
         pid_dir[Balance_mode].preError = pid_dir[Balance_mode].error;
         pid_dir[Balance_mode].output = pid_dir[Balance_mode].p * pid_dir[Balance_mode].error + pid_dir[Balance_mode].d * pid_dir[Balance_mode].deriv;
-
         //角速度内环---------
-        pid_yaw[Balance_mode].error = error_output + CarAttitudeRate.Yaw;
+        pid_yaw[Balance_mode].error = pid_dir[Balance_mode].output + CarAttitudeRate.Yaw;
         pid_yaw[Balance_mode].deriv = pid_yaw[Balance_mode].error - pid_yaw[Balance_mode].preError;
         pid_yaw[Balance_mode].preError = pid_yaw[Balance_mode].error;
         pid_yaw[Balance_mode].output = pid_yaw[Balance_mode].p * pid_yaw[Balance_mode].error + pid_yaw[Balance_mode].d * pid_yaw[Balance_mode].deriv;
         dir_out = (int)pid_yaw[Balance_mode].output;
     }
-
     //输出限幅
     if(flag.En_dir == 0)
     {
@@ -487,7 +488,7 @@ int DirectionControl(void)
     else
     {//出界保护
 #ifdef _PROTECT_
-        if(ad_data_now[LH]>50 && ad_data_now[MD]>50 && ad_data_now[RH]>50 && flag.start==0)
+        if((ad_data_now[LH]>100 || ad_data_now[MD]>200 || ad_data_now[RH]>100) && flag.start==0)
         {
             flag.start = 1;
         }
@@ -657,7 +658,7 @@ void motor_out(int angle_out, int speed_out, int dir_out)
     else if(Balance_mode == 1)//三轮
     {
         AngleSpeedSum = angle_out+speed_out;
-        AngleSpeedSum = limit_ab(AngleSpeedSum, 200, 800);
+        //AngleSpeedSum = limit_ab(AngleSpeedSum, 0, 800);
     }
 
     if(myfabs(AngleSpeedSum/(myfabs(car_speed_now)+1)) > 50 && myabs(AngleSpeedSum )> 100 && time_count>1000) error++;
@@ -712,9 +713,11 @@ void motor_out(int angle_out, int speed_out, int dir_out)
         if(flag.lost == 1)
         {
             buzz_off();
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 450);
             DisableInterrupts;
-            OLED_Print_uint16(110, 0, time_count/500, 0, 1);
-            OLED_Print_float(70,2,path_length,3,1);
+            int8 buff[20];
+            sprintf(buff, ">> %d s, %3.1f m\0", time_count/500, path_length);
+            printLog(buff);
         }
     }
     else if(flag.mode == MODE_PWM_TEST)

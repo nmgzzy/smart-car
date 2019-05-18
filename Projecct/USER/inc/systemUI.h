@@ -24,6 +24,6 @@ typedef enum {
 uint8 readKey(void);
 void displayUI(void);
 void displayDebug(void);
-void printLog(uint8 message[20]);
+void printLog(int8 message[20]);
 
 #endif

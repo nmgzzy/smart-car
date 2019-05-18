@@ -91,11 +91,6 @@ void system_init(void)
     EnableInterrupts;
 }
 
-void test(void)
-{
-
-}
-
 void testServo(void)
 {
     uint16 duty = 500;
@@ -140,4 +135,9 @@ void testPWM(void)
     ftm_pwm_init(MOTOR_FTM, MOTOR_CH_RP, 17000, 600);
     ftm_pwm_init(MOTOR_FTM, MOTOR_CH_RN, 17000, 800);
     while(1);
+}
+
+void test(void)
+{
+
 }
