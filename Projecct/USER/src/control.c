@@ -66,7 +66,7 @@ int BalanceControl(void)
 
     //if(cnt%5==0) communicate_send(&offset, ANG_, 1);*/
 
-    if((CarAttitude.Pitch > 15 || CarAttitude.Pitch < -40 || myfabs(CarAttitude.Roll) > 20)
+    if((CarAttitude.Pitch > 60 || CarAttitude.Pitch < -110 || myfabs(CarAttitude.Roll) > 30)
        && flag.mode != MODE_DEBUG && time_count>1000)
     {
         flag.lost = 1;
@@ -113,12 +113,24 @@ void ADC_get(void)
     uint8 i,j;
     uint16 ad_raw_data_now[NUM_OF_AD]={0};
     static uint16 ad_raw_data_pre[NUM_OF_AD][5]={0};
-
-    ad_raw_data_now[LH] = (uint16)(k_adc * adc_once(ADC_LH,ADC_12bit));
-    ad_raw_data_now[LV] = (uint16)(k_adc * adc_once(ADC_LV,ADC_12bit));
-    ad_raw_data_now[MD] = (uint16)(k_adc * adc_once(ADC_MD,ADC_12bit));
-    ad_raw_data_now[RV] = (uint16)(k_adc * adc_once(ADC_RV,ADC_12bit));
-    ad_raw_data_now[RH] = (uint16)(k_adc * adc_once(ADC_RH,ADC_12bit));
+#define SAMPLING_NUM 3
+    for(i = 0; i < SAMPLING_NUM; i++)
+    {
+        ad_raw_data_now[LH] += adc_once(ADC_LH,ADC_12bit);//k_adc *
+        ad_raw_data_now[RH] += adc_once(ADC_RH,ADC_12bit);
+        ad_raw_data_now[LV] += adc_once(ADC_LV,ADC_12bit);
+        ad_raw_data_now[RV] += adc_once(ADC_RV,ADC_12bit);
+        ad_raw_data_now[LX] += adc_once(ADC_LX,ADC_12bit);
+        ad_raw_data_now[RX] += adc_once(ADC_RX,ADC_12bit);
+        ad_raw_data_now[MD] += adc_once(ADC_MD,ADC_12bit);
+    }
+    ad_raw_data_now[LH] /= SAMPLING_NUM;
+    ad_raw_data_now[RH] /= SAMPLING_NUM;
+    ad_raw_data_now[LV] /= SAMPLING_NUM;
+    ad_raw_data_now[RV] /= SAMPLING_NUM;
+    ad_raw_data_now[LX] /= SAMPLING_NUM;
+    ad_raw_data_now[RX] /= SAMPLING_NUM;
+    ad_raw_data_now[MD] /= SAMPLING_NUM;
 
     //记录原始数据
     for(i = 0; i < NUM_OF_AD; i++)
@@ -142,43 +154,107 @@ float k_circle[5] = {1,1,1,1,1};//入环偏差系数
 int8 circle_offset[5] = {20,20,20,20,20};
 uint8 cl_num = 3;//入环偏差系数
 uint16 cl_out_delay = 400, cl_time = 40;//环参数
+int16 circle_time_count[5] = {0};
+uint8 crcl_cnt = 1;
 
 float ErrorCalculate(uint8 mode)
 {
-    //uint8 Estep[2][7] = {  6,  12,  18,  24,  30,  36,  42};
-    //float Epro[2][8]  = {1.3,1.2, 1.2, 1.1, 1.0, 0.9, 0.9, 1.0};
-    float error1, error2, error3, errorH, errorV, errorVH;
-    float error_out, circle_val_dev;
-    static float yaw_integ = 0, mid[3];//, circle_val[5]
-    static uint32 tc[5] = {0};
-    static uint8 crcl_cnt = 1;
-    int16 difH, difV, difX, sumH, sumV, sumHM, sumX;//, a, b;
-
+    float error1;//, error2, error3, errorH, errorV, errorVH
+    float error_out;//, circle_val_dev
+    //static float yaw_integ = 0;//, circle_val[5], mid[3]
+    static int16 difX_div[5] = {0};
+    int16 difH, difV, difX;//, a, b;
+    uint16 sumH, sumV, sumX, sumHM, sumHM2;
     //float error_a = 0;
     //int8 sgn = 0;
     //float error_offset = 0;
-
     ADC_get();
-
-    sumH = ad_data_now[LH]+ad_data_now[RH];
-    sumV = ad_data_now[LV]+ad_data_now[RV];
-    sumX = ad_data_now[LX]+ad_data_now[RX];
     difH = ad_data_now[LH]-ad_data_now[RH];
     difV = ad_data_now[LV]-ad_data_now[RV];
     difX = ad_data_now[LX]-ad_data_now[RX];
-    sumHM = sumH + ad_data_now[MD];
+    sumH = ad_data_now[LH]+ad_data_now[RH];
+    sumV = ad_data_now[LV]+ad_data_now[RV];
+    sumX = ad_data_now[LX]+ad_data_now[RX];
+    sumHM = sumH + ad_data_now[MD] + 1;
+    sumHM2 = (uint16)(sumH + k_md[mode]*ad_data_now[MD] + 1);
 
 
-    error1 = k_ke[mode] * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV)/(sumH + k_md[mode]*ad_data_now[MD] + 1);
+    error1 = k_ke[mode] * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV)/sumHM2;
     error_out = error1;
-    errorH = k_ke[mode] * difH/sumH;
-    errorV = k_ke[mode] * difV/sumV;
-    errorVH = k_ke[mode] * difV/sumH;
-    //ftestVal[1] = sumHM - 2000;             /////////////////////////
-    //ftestVal[2] = errorH*100;             ///////////////////////
-    //ftestVal[3] = errorVH*100;            /////////////////////////
-    //ftestVal[4] = (errorH+errorVH)*50;    ///////////////////////
-    //ftestVal[5] = error1*10;              /////////////////////////
+    //errorH = k_ke[mode] * difH/sumH;
+    //errorV = k_ke[mode] * difV/sumV;
+    //errorVH = k_ke[mode] * difV/sumH;
+
+    //ftestVal[1] = difH;             /////////////////////////
+    //ftestVal[2] = difV;             ///////////////////////
+    ftestVal[3] = difX;            /////////////////////////
+    //ftestVal[4] = sumH + ad_data_now[MD]-3000;             ///////////////////////
+    //ftestVal[5] = sumV;              /////////////////////////
+    //ftestVal[6] = sumX;             ///////////////////////
+    //ftestVal[7] = ad_data_now[MD];   /////////////////////////
+    ftestVal[1] = sumH + ad_data_now[MD]-3000;         ///////////////////////
+    ftestVal[2] = ad_data_now[MD];         ///////////////////////
+    ftestVal[4] = 0;        ///////////////////////
+    if(Balance_mode == 0)
+    {
+        //--------------检环-------------------
+        if(time_count>1000 && sumHM > 3000 && ad_data_now[MD] > 700 && flag.circle <= 1)
+        {
+            ftestVal[4] = 1000;        ///////////////////////
+            flag.circle = 1;
+            for(uint8 i=4; i>0; i--)
+                difX_div[i] = difX_div[i-1];
+            difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
+            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0)
+            {
+                flag.buzz = 3;
+                ftestVal[5] = 2000;        ///////////////////////
+            }
+        }
+        //if()
+
+
+        if(flag.circle > 0)
+        {
+            circle_time_count[0]++;
+            if(circle_time_count[0] > 4*500)
+            {
+                circle_time_count[0] = 0;
+                flag.circle = 0;
+            }
+        }
+        //--------------检环结束------------------
+    }
+    else if(Balance_mode == 1)
+    {
+        //--------------检环-------------------
+        if(time_count>1000 && sumHM > 5700 && ad_data_now[MD] > 2200 && flag.circle <= 1)
+        {
+            ftestVal[4] = 1000;        ///////////////////////
+            flag.circle = 1;
+            for(uint8 i=4; i>0; i--)
+                difX_div[i] = difX_div[i-1];
+            difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
+            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0)
+            {
+                flag.buzz = 3;
+                ftestVal[5] = 2000;        ///////////////////////
+            }
+        }
+        //if()
+
+
+        if(flag.circle > 0)
+        {
+            circle_time_count[0]++;
+            if(circle_time_count[0] > 4*500)
+            {
+                circle_time_count[0] = 0;
+                flag.circle = 0;
+            }
+        }
+        //--------------检环结束------------------
+    }
 
     /*if(Balance_mode == 0)
     {
@@ -275,7 +351,7 @@ float ErrorCalculate(uint8 mode)
         //--------------进环结束-------------------
 
 
-        /*ftestVal[1] = error1;
+        *ftestVal[1] = error1;
         error2 = k_ke[mode]*(9*difH + 1*difV)
                     / (sumH + 0.5f*ad_data_now[MD] + 1);
         ftestVal[2] = error2;
@@ -394,27 +470,12 @@ float ErrorCalculate(uint8 mode)
 
     }*/
     return error_out;
+}
 
-/*
-    error_a = myfabs(error_out);
-    sgn = error_out >= 0 ? 1 : -1;
-    if(error_a < Estep[mode][0])
-        error_out = sgn * (error_a * Epro[mode][0]);
-    else if(error_a < Estep[mode][1])
-        error_out = sgn * ((error_a-Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else if(error_a < Estep[mode][2])
-        error_out = sgn * ((error_a-Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else if(error_a < Estep[mode][3])
-        error_out = sgn * ((error_a-Estep[mode][2]) * Epro[mode][3] + (Estep[mode][2] - Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else if(error_a < Estep[mode][4])
-        error_out = sgn * ((error_a-Estep[mode][3]) * Epro[mode][4] + (Estep[mode][3] - Estep[mode][2]) * Epro[mode][3] + (Estep[mode][2] - Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else if(error_a < Estep[mode][5])
-        error_out = sgn * ((error_a-Estep[mode][4]) * Epro[mode][5] + (Estep[mode][4] - Estep[mode][3]) * Epro[mode][4] + (Estep[mode][3] - Estep[mode][2]) * Epro[mode][3] + (Estep[mode][2] - Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else if(error_a < Estep[mode][6])
-        error_out = sgn * ((error_a-Estep[mode][5]) * Epro[mode][6] + (Estep[mode][5] - Estep[mode][4]) * Epro[mode][5] + (Estep[mode][4] - Estep[mode][3]) * Epro[mode][4] + (Estep[mode][3] - Estep[mode][2]) * Epro[mode][3] + (Estep[mode][2] - Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-    else
-        error_out = sgn * ((error_a-Estep[mode][6]) * Epro[mode][7] + (Estep[mode][6] - Estep[mode][5]) * Epro[mode][6] + (Estep[mode][5] - Estep[mode][4]) * Epro[mode][5] + (Estep[mode][4] - Estep[mode][3]) * Epro[mode][4] + (Estep[mode][3] - Estep[mode][2]) * Epro[mode][3] + (Estep[mode][2] - Estep[mode][1]) * Epro[mode][2] + (Estep[mode][1] - Estep[mode][0]) * Epro[mode][1] + Estep[mode][0] * Epro[mode][0]);
-*/
+
+void CounterDecrease(void)
+{
+
 }
 
 uint16 barrier_time = 0;
@@ -428,10 +489,10 @@ uint16 bt[2][8];
 int DirectionControl(void)
 {
     int dir_out = 0;
+    static int dir_out_last = 0;
     float E_error = 0;
     float error_offset = 0;
     E_error = ErrorCalculate(Balance_mode);
-    //ftestVal[0] = E_error;             /////////////////////
     if(time_count == 1)
     {
         bt[0][0] = 0;                               bt[1][0] = 0;
@@ -501,6 +562,9 @@ int DirectionControl(void)
     }
 
     dir_out = limit(dir_out, DIROUTMAX);
+    dir_out = (int)(dir_out_last * 0.2f + dir_out * 0.8f);
+    dir_out_last = dir_out;
+    ftestVal[0] = dir_out;    ////////////////////////////
     ////////////////////////////
     return dir_out;
 }
@@ -599,13 +663,13 @@ int SpeedControl(void)
     {
         if(pid_angle[Balance_mode].error > 10)
         {
-            pid_speed[Balance_mode].p = 0.5f * pid_spd_set[0];
-            pid_speed[Balance_mode].i = 0.5f * pid_spd_set[1];
+            pid_speed[Balance_mode].p = 0.7f * pid_spd_set[0];
+            pid_speed[Balance_mode].i = 0.7f * pid_spd_set[1];
         }
         else if(pid_angle[Balance_mode].error > 5)
         {
-            pid_speed[Balance_mode].p = 0.8f * pid_spd_set[0];
-            pid_speed[Balance_mode].i = 0.8f * pid_spd_set[1];
+            pid_speed[Balance_mode].p = 0.9f * pid_spd_set[0];
+            pid_speed[Balance_mode].i = 0.9f * pid_spd_set[1];
         }
         else
         {
@@ -629,7 +693,7 @@ int SpeedControl(void)
             speed_out = speed_out_pre + spd_acc;
     }
 
-    if(Balance_mode == 0 || flag.En_spd == 0)       //直立模式或调试模式不输出速度
+    if(flag.En_spd == 0)       //直立模式或调试模式不输出速度
     {
         speed_out = 0;
     }

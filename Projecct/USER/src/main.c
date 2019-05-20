@@ -25,9 +25,9 @@ int main(void)
             }
         }
         if(Balance_mode == 0)
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 590);
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 560);
         else
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 230);
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 235);
         /*if(Balance_mode == 1)
         {
             simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//三轮

@@ -32,7 +32,6 @@ typedef struct{
     uint8 En_dir;
     uint8 broken_road;
     uint8 circle;
-    uint8 circle_out;
 }Flag_t;
 
 void pidInit(void);
@@ -44,7 +43,7 @@ extern float camera_angle_p;
 extern PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2];
 extern float pid_dir_pset[2], pid_dire_pset[2];
 extern float pid_spd_set[2];
-extern int   itestVal[6];
-extern float ftestVal[6],testPar[3];
+extern int   itestVal[3];
+extern float ftestVal[8],testPar[3];
 
 #endif

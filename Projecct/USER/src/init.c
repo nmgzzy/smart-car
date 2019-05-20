@@ -5,8 +5,8 @@ PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2];
 float camera_angle_p = 0;
 float pid_dir_pset[2], pid_dire_pset[2];;
 float pid_spd_set[2];
-int   itestVal[6] = {0};
-float ftestVal[6] = {0};
+int   itestVal[3] = {0};
+float ftestVal[8] = {0};
 float testPar[3] = {0};
 
 void pidInit(void)
@@ -32,7 +32,7 @@ void pidInit(void)
     pid_speed[0].p = 10;
     pid_speed[0].i = 0.16;
     pid_speed[0].d = 0;
-    pid_speed[0].intlimit = 1500;
+    pid_speed[0].intlimit = 1700;
     pid_speed[0].errlimit = (int16)(0.6f * target_speed_max[0]);
 
     //方向pid
@@ -59,7 +59,7 @@ void pidInit(void)
     pid_spd_set[1] = pid_speed[1].i;
     pid_speed[1].d = 0;
     pid_speed[1].intlimit = 300;
-    pid_speed[1].errlimit = (int16)(0.8f * target_speed_max[1]);
+    pid_speed[1].errlimit = (int16)(0.7f * target_speed_max[1]);
 
     //方向pid
     pid_dir_pset[1] = 12;

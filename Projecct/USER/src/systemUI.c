@@ -640,17 +640,19 @@ void displayDebug(void)
     OLED_P6x8Str(0, 0, (uint8*)buff);
     sprintf(buff, "Prt:%3.1f \0", CarAttitudeRate.Pitch);
     OLED_P6x8Str(0, 1, (uint8*)buff);
-    sprintf(buff, "Yrt:%3.1f \0", CarAttitudeRate.Yaw);
+    sprintf(buff, "Yaw:%3.1f \0", CarAttitude.Yaw);
     OLED_P6x8Str(0, 2, (uint8*)buff);
+    sprintf(buff, "Yrt:%3.1f \0", CarAttitudeRate.Yaw);
+    OLED_P6x8Str(0, 3, (uint8*)buff);
     //OLED_Print_float(0 , 1, CarAttitude.Yaw,3,1);
     ///OLED_Print_float(0 , 2, CarAttitudeRate.Pitch,3,1);
     //OLED_Print_float(0 , 3, CarAttitudeRate.Yaw,3,1);
     sprintf(buff, "spd:%3d \0", (int16)car_speed_now);
     OLED_P6x8Str(0, 7, (uint8*)buff);
 
-    OLED_Print_float(0 , 4, ftestVal[0],3,2);
-    OLED_Print_float(0 , 5, itestVal[1],3,1);
-    OLED_Print_float(0 , 6, ftestVal[2],3,1);
+    //OLED_Print_float(0 , 4, ftestVal[0],3,2);
+    OLED_Print_uint16(0 , 5, itestVal[0]/1000,0,0);
+    //OLED_Print_float(0 , 6, ftestVal[2],3,1);
 
 }
 

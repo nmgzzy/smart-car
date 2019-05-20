@@ -20,7 +20,7 @@
 
 #include "isr.h"
 //#define _SWICH_
-//#define _SEND_DATA_
+#define _SEND_DATA_
 
 uint16 set_time = 12;
 uint32 time_count = 0;
@@ -31,7 +31,7 @@ void PIT0_IRQHandler(void)
     PIT_FlAG_CLR(pit0);
     //uint8 buf[2];
     //uint16 distance = 1500;
-    //pit_time_start(pit1);
+    //pit_time_start(pit2);
     static uint8 cnt=0;//,i, barrier_cnt = 0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
     //uint8 send[24] = {0};
@@ -70,13 +70,9 @@ void PIT0_IRQHandler(void)
         cnt = 0;
     }
     cnt++;
-    //if(time_count > 0 && time_count <= 1000)
-        //itestVal[0] += pit_get_us(pit1);
-}
-
-void CounterDecrease(void)
-{
-
+    //itestVal[1] = pit_get_us(pit2);
+    //if(time_count > 1000 && time_count <= 2000)
+    //    itestVal[0] += itestVal[1];
 }
 
 void vcan_sendware(uint8 *wareaddr, uint32 waresize)
@@ -95,11 +91,13 @@ void DataScope_send(void)
     float t;
     t = time_count/2;
 
-    Float2Byte(&ftestVal[0], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[1], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[2], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[3], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[4], &debug_buff[i]);   i+=4;
+    Float2Byte(&ftestVal[5], &debug_buff[i]);   i+=4;
+    Float2Byte(&ftestVal[6], &debug_buff[i]);   i+=4;
+    Float2Byte(&ftestVal[0], &debug_buff[i]);   i+=4;
     Float2Byte(&t, &debug_buff[i]);             i+=4;
 
     vcan_sendware(debug_buff, i);
@@ -108,7 +106,7 @@ void DataScope_send(void)
 
 void UART5_RX_TX_IRQHandler(void)
 {
-    uint8 i;
+    //uint8 i;
     if(UART5->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
     {
         //用户需要处理接收数据
