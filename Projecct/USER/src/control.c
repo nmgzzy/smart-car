@@ -1,4 +1,4 @@
-﻿ #include "control.h"
+﻿#include "control.h"
 
 #define _PROTECT_
 
@@ -12,10 +12,11 @@ uint8 Balance_mode = 0; //0-直立 1-三轮
 
 int BalanceControl(void)
 {
-    //static float camera_angle, camera_angle_last;
-    //uint8 offset = 0;
+    static float camera_angle, camera_angle_last;
+    uint8 offset = 0;
     static uint8 cnt = 0;
     int angle_out = 0;
+    float t;
     cnt++; if(cnt >= 10) cnt = 0;
 
     //if(cnt)
@@ -55,16 +56,19 @@ int BalanceControl(void)
     CarAttitude.Pitch += (-Gyro.Xdata + AccZAdjust) * PERIODS;
 
     //摄像头画面控制
-    /*camera_angle = CarAttitude.Pitch;
-    camera_angle = flimit_ab(camera_angle,-25,10);
+    camera_angle = CarAttitude.Pitch;
+    camera_angle = flimit_ab(camera_angle,-31,2);
     camera_angle = 0.2f*camera_angle + 0.8f*camera_angle_last;
     camera_angle_last = camera_angle;
 
-    if(camera_angle < -24) offset = 0;
-    else if(camera_angle > 0) offset = 29;
-    else offset = 29-(uint8)(-camera_angle*1.208333);
+    if(camera_angle <= -31) offset = 0;
+    else if(camera_angle >= 2) offset = 127;
+    else offset = (uint8)((camera_angle+31)*3.848f);
+    if(Balance_mode == 1)
+        offset = offset | 0x80;
+    //itestVal[0] = offset;   /////////////////////////
 
-    //if(cnt%5==0) communicate_send(&offset, ANG_, 1);*/
+    if(cnt%5==0) uart_putchar(COM_UART, offset);
 
     if((CarAttitude.Pitch > 60 || CarAttitude.Pitch < -110 || myfabs(CarAttitude.Roll) > 30)
        && flag.mode != MODE_DEBUG && time_count>1000)
@@ -84,8 +88,9 @@ int BalanceControl(void)
         pid_angle[Balance_mode].error = CarAttitude.Pitch - target_angle[Balance_mode];
         if(pid_angle[Balance_mode].error < 0)
             pid_angle[Balance_mode].error = 0;
-        pid_angle[Balance_mode].output = -pid_angle[Balance_mode].p * pid_angle[Balance_mode].error * pid_angle[Balance_mode].error
-            + pid_angle[Balance_mode].d * (-CarAttitudeRate.Pitch);
+        t = pid_angle[Balance_mode].d * (-CarAttitudeRate.Pitch);
+        if(t < 20 || t > -20) t = 0;
+        pid_angle[Balance_mode].output = -pid_angle[Balance_mode].p * pid_angle[Balance_mode].error + t;
     }
     angle_out = (int)pid_angle[Balance_mode].output;
 
@@ -103,9 +108,12 @@ int BalanceControl(void)
 uint16 ad_data_now[NUM_OF_AD] = {0};
 
 float k_hv[2] = {8, 8};//横竖电感差比例
+float k_x[2] = {1, 1};//横竖电感差比例
+float k_hv_cin[2] = {4, 4};//进环横竖电感差比例
+float k_hv_cout[2] = {4, 4};//出环横竖电感差比例
 float k_md[2] = {0.3, 0.3};//中间电感比例
 float k_adc = 1.0f;
-float k_ke[2] = {10.0f, 10.0f};
+//float k_ke[2] = {10.0f, 10.0f};
 //float image_error[5] = {0};
 
 void ADC_get(void)
@@ -151,20 +159,20 @@ void ADC_get(void)
 }
 
 float k_circle[5] = {1,1,1,1,1};//入环偏差系数
-int8 circle_offset[5] = {20,20,20,20,20};
-uint8 cl_num = 3;//入环偏差系数
+uint16 circle_offset[5] = {20,20,20,20,20};
+uint8 cl_num = 3;
 uint16 cl_out_delay = 400, cl_time = 40;//环参数
 int16 circle_time_count[5] = {0};
-uint8 crcl_cnt = 1;
+int8 crcl_cnt = -1;
 
 float ErrorCalculate(uint8 mode)
 {
-    float error1;//, error2, error3, errorH, errorV, errorVH
+    float error1, error2;// error3, errorH, errorV, errorVH
     float error_out;//, circle_val_dev
-    //static float yaw_integ = 0;//, circle_val[5], mid[3]
+    static float yaw_integ = 0;//, circle_val[5], mid[3]
     static int16 difX_div[5] = {0};
     int16 difH, difV, difX;//, a, b;
-    uint16 sumH, sumV, sumX, sumHM, sumHM2;
+    uint16 sumH, sumV, sumX, sumHM, sumHM2, sumHM3, sumHM4;
     //float error_a = 0;
     //int8 sgn = 0;
     //float error_offset = 0;
@@ -177,42 +185,64 @@ float ErrorCalculate(uint8 mode)
     sumX = ad_data_now[LX]+ad_data_now[RX];
     sumHM = sumH + ad_data_now[MD] + 1;
     sumHM2 = (uint16)(sumH + k_md[mode]*ad_data_now[MD] + 1);
+    sumHM3 = (uint16)(0.7f*sumH + 0.2f*sumX + (k_md[mode]+0.1f)*ad_data_now[MD] + 1);
+    sumHM4 = (uint16)(0.7f*sumH + 0.3f*sumV + k_md[mode]*ad_data_now[MD] + 1);
 
-
-    error1 = k_ke[mode] * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV)/sumHM2;
+    error1 = 10 * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV + k_x[mode]*difX)/sumHM2;
     error_out = error1;
     //errorH = k_ke[mode] * difH/sumH;
     //errorV = k_ke[mode] * difV/sumV;
     //errorVH = k_ke[mode] * difV/sumH;
 
-    //ftestVal[1] = difH;             /////////////////////////
-    //ftestVal[2] = difV;             ///////////////////////
+    ftestVal[1] = difH;             /////////////////////////
+    ftestVal[2] = difV;             ///////////////////////
     ftestVal[3] = difX;            /////////////////////////
-    //ftestVal[4] = sumH + ad_data_now[MD]-3000;             ///////////////////////
-    //ftestVal[5] = sumV;              /////////////////////////
-    //ftestVal[6] = sumX;             ///////////////////////
-    //ftestVal[7] = ad_data_now[MD];   /////////////////////////
-    ftestVal[1] = sumH + ad_data_now[MD]-3000;         ///////////////////////
-    ftestVal[2] = ad_data_now[MD];         ///////////////////////
-    ftestVal[4] = 0;        ///////////////////////
+    ftestVal[4] = sumHM2-2000;    ///////////////////////
+    ftestVal[5] = sumV;              /////////////////////////
+    ftestVal[6] = ad_data_now[MD];             ///////////////////////
+
     if(Balance_mode == 0)
     {
         //--------------检环-------------------
         if(time_count>1000 && sumHM > 3000 && ad_data_now[MD] > 700 && flag.circle <= 1)
         {
-            ftestVal[4] = 1000;        ///////////////////////
             flag.circle = 1;
             for(uint8 i=4; i>0; i--)
                 difX_div[i] = difX_div[i-1];
             difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
-            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0)
+            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 600)
             {
-                flag.buzz = 3;
-                ftestVal[5] = 2000;        ///////////////////////
+                flag.circle = 2;
+                yaw_integ = 0;
+                crcl_cnt++;
+                if(crcl_cnt >= cl_num) crcl_cnt = 0;
+                //flag.buzz = 1;
+                circle_time_count[1] = 0;
             }
         }
-        //if()
+        if(flag.circle == 2)
+        {
+            yaw_integ += CarAttitudeRate.Yaw*0.002f;
+            circle_time_count[1]++;
+            error2 = k_circle[crcl_cnt]*10*(signal(difV)*circle_offset[crcl_cnt] + k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM3;
+            if(circle_time_count[1] < cl_time)
+                error_out = error2;
+            if((yaw_integ > 330 || yaw_integ < -330) && sumHM > 4500 && difX < 500)
+            {
+                flag.circle = 3;
+                //flag.buzz = 3;
+                circle_time_count[1] = 0;
+            }
 
+        }
+        else if(flag.circle == 3)
+        {
+            circle_time_count[1]++;
+            if(circle_time_count[1] > 500)
+                flag.circle = 0;
+            error2 = k_circle[crcl_cnt]*8*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM4;
+            error_out = error2;
+        }
 
         if(flag.circle > 0)
         {
@@ -221,8 +251,11 @@ float ErrorCalculate(uint8 mode)
             {
                 circle_time_count[0] = 0;
                 flag.circle = 0;
+                //flag.buzz = 2;
             }
         }
+        else
+            circle_time_count[0] = 0;
         //--------------检环结束------------------
     }
     else if(Balance_mode == 1)
@@ -230,18 +263,42 @@ float ErrorCalculate(uint8 mode)
         //--------------检环-------------------
         if(time_count>1000 && sumHM > 5700 && ad_data_now[MD] > 2200 && flag.circle <= 1)
         {
-            ftestVal[4] = 1000;        ///////////////////////
             flag.circle = 1;
             for(uint8 i=4; i>0; i--)
                 difX_div[i] = difX_div[i-1];
             difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
-            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0)
+            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 1500)
             {
-                flag.buzz = 3;
-                ftestVal[5] = 2000;        ///////////////////////
+                flag.circle = 2;
+                yaw_integ = 0;
+                crcl_cnt++;
+                if(crcl_cnt >= cl_num) crcl_cnt = 0;
+                //flag.buzz = 1;
+                circle_time_count[1] = 0;
             }
         }
-        //if()
+        if(flag.circle == 2)
+        {
+            yaw_integ += CarAttitudeRate.Yaw*0.002f;
+            circle_time_count[1]++;
+            error2 = k_circle[crcl_cnt]*10*(signal(difV)*circle_offset[crcl_cnt] + k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM3;
+            if(circle_time_count[1] < cl_time)
+                error_out = error2;
+            if((yaw_integ > 340 || yaw_integ < -340) && sumHM > 8500 && difX < 500)
+            {
+                flag.circle = 3;
+                circle_time_count[1] = 0;
+                //flag.buzz = 3;
+            }
+        }
+        else if(flag.circle == 3)
+        {
+            circle_time_count[1]++;
+            if(circle_time_count[1] > 500)
+                flag.circle = 0;
+            error2 = k_circle[crcl_cnt]*8*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM4;
+            error_out = error2;
+        }
 
 
         if(flag.circle > 0)
@@ -251,224 +308,14 @@ float ErrorCalculate(uint8 mode)
             {
                 circle_time_count[0] = 0;
                 flag.circle = 0;
-            }
-        }
-        //--------------检环结束------------------
-    }
-
-    /*if(Balance_mode == 0)
-    {
-        //--------------检环-------------------
-        if(time_count>1000 && sumHM > 3000 && ad_data_now[MD] > 500)
-        {
-            if(flag.circle < 2 && flag.circle_out==0)
-            {
-                flag.circle = 1;
-                mid[2] = mid[1];
-                mid[1] = mid[0];
-                mid[0] = (mid[1]+mid[2]+ad_data_now[MD])/3;
-                circle_val_dev = myfabs(mid[0] - mid[2]);
-
-                //ftestVal[2] = circle_val_dev*10;                  ///////////////////////
-                //ftestVal[3] = myfabs(difV*100/sumHM)*10;          ///////////////////////
-
-                if(ad_data_now[MD] > 1500 && circle_val_dev < 30 && myfabs(difH*100/sumHM) < 15)//
-                {
-                    flag.circle = 2;
-                    yaw_integ = 0;
-                    crcl_cnt++;
-                    if(crcl_cnt>cl_num) crcl_cnt = 1;
-                    flag.buzz = 1;
-                    tc[0] = time_count;
-                    tc[1] = tc[0] + cl_time;
-                    tc[2] = tc[1] + 200;
-                    tc[3] = tc[2] + cl_time;
-                }
-            }
-        }
-        else if(flag.circle != 2)
-        {
-            flag.circle = 0;
-        }
-        //--------------检环结束------------------
-
-        //--------------进环-------------------
-        if(flag.circle == 1)
-        {
-            error_out = 4.5*k_ke[mode]*((difH+difV) /(sumH + 1));
-        }
-        else if(flag.circle == 2)
-        {
-            yaw_integ += CarAttitudeRate.Yaw*0.002f;
-            error2 = k_ke[mode] * difV/(sumH + 0.3f*ad_data_now[MD] + 1);
-            error3 = 4.5*k_ke[mode]*((difH+difV) /(sumH + 1));
-            if(time_count < tc[1])
-            {
-                error_out = (k_circle[0] * error2 + circle_offset[0])*(time_count - tc[0])/(tc[1] - tc[0])
-                    + error3*(tc[1] - time_count)/(tc[1] - tc[0]);
-            }
-            else if(time_count < tc[2])
-            {
-                error_out = k_circle[0] * error2 + circle_offset[0];
-
-            }
-            else if(time_count < tc[3])
-            {
-                error_out = (k_circle[0] * error2 + circle_offset[0])*(time_count - tc[2])/(tc[3] - tc[2])
-                    + error1*(tc[3] - time_count)/(tc[3] - tc[2]);
-            }
-            else
-            {
-                error_out = error1;
-            }
-            //pid_dir.p = 0.7f * pid_dir_pset;
-            if(yaw_integ > 330 || yaw_integ < -330)
-            {
-                flag.circle = 0;
-                flag.circle_out = 1;
-                yaw_integ = 0;
-                flag.buzz = 3;
-                tc[4] = time_count + 500;
-            }
-            if(time_count == tc[0]+1500 && flag.circle > 0)//长时间未检测到出环自动清除标志位
-            {
-                flag.circle = 0;
-                yaw_integ = 0;
-                flag.buzz = 2;
-            }
-        }
-        if(flag.circle_out == 1)
-        {
-            if(time_count == tc[4])
-            {
-                flag.circle_out = 0;
-            }
-            a = limit_ab(ad_data_now[LH]-ad_data_now[LV], 0, 3000);
-            b = limit_ab(ad_data_now[RH]-ad_data_now[RV], 0, 3000);
-            error_out = flimit(k_ke[mode]*testPar[1]*(a-b)/(sumH + k_md[mode]*ad_data_now[MD] + 1),30);
-
-        }
-        //--------------进环结束-------------------
-
-
-        *ftestVal[1] = error1;
-        error2 = k_ke[mode]*(9*difH + 1*difV)
-                    / (sumH + 0.5f*ad_data_now[MD] + 1);
-        ftestVal[2] = error2;
-        error3 = k_ke[mode]*(4*difH + 4*difV)
-                    / (0.8f*sumH + 0.5*ad_data_now[MD] + 1);
-        ftestVal[3] = error3;
-        if(time_count>1000 && sumHM > 3000)
-        {
-            if(flag_circle < 2 && flag_circle_out==0)
-            {
-                flag_circle = 1;
-                circle_val = (sumHM-3000)/10.0f*sumHM/(myfabs(difH)+1);
-                if(circle_val > 500)
-                {
-                    tc[0] = time_count;
-                    flag_circle = 2;
-                    crcl_cnt++;
-                    if(crcl_cnt>cl_num) crcl_cnt = 1;
-                    flag.buzz = 1;
-                }
-            }
-        }
-        else
-        {
-            flag_circle = 0;
-        }
-
-        if(flag_circle == 1)
-        {
-            error_out = error2;
-        }
-        else if(flag_circle == 2)
-        {
-            yaw_integ += CarAttitudeRate.Yaw*0.002f;
-            if(tc[0] - time_count > 0 && tc[0] - time_count < 3.14f*50)//circle_offset[crcl_cnt-1]
-                error_offset = signal(difH+difV) * sin((float)(tc[0] - time_count)/50)*50;//k_circle[crcl_cnt-1]
-            else
-                error_offset = 0;
-            error_out = error3 + error_offset;
-
-            if(time_count < tc[0]+400)
-            {
-                if(time_count < tc[0]+cl_time)
-                {
-                    error_out = (signal(difH+difV)*circle_offset[crcl_cnt-1]* k_circle[crcl_cnt-1]
-                                 * (time_count-tc[0]) + error2 *(cl_time-time_count+tc[0]))
-                                    /(float)cl_time;
-                }
-                if(time_count >= tc[0]+cl_time && time_count < tc[0]+cl_time+10)
-                {
-                    error_out = signal(difH+difV)*circle_offset[crcl_cnt-1]* k_circle[crcl_cnt-1];
-                }
-                else if(time_count >= tc[0]+cl_time+10 && time_count < tc[0]+400)
-                {
-                    error_out = (error1 *(time_count-tc[0]-cl_time-10)
-                                 + signal(difH+difV)*circle_offset[crcl_cnt-0]* k_circle[crcl_cnt-1]
-                                     * (400-time_count+tc[0]))/(float)(400-cl_time-10);
-                }
-            }*
-            //pid_dir.p = 0.7f * pid_dir_pset;
-            if(yaw_integ > 330 || yaw_integ <-330)
-            {
-                flag_circle = 0;
-                flag_circle_out = 1;
-                yaw_integ = 0;
-                //flag.buzz = 3;
-                tc[1] = time_count;
-            }
-            if(time_count == tc[0]+1500 && flag_circle > 0)//长时间未检测到出环自动清除标志位
-            {
-                flag_circle = 0;
-                yaw_integ = 0;
                 //flag.buzz = 2;
             }
         }
-        if(flag_circle_out == 1)
-        {
-            if(time_count < tc[1]+cl_out_delay)
-            {
-                error_out = error2;
-                //pid_dir.p = 0.7f * pid_dir_pset;
-            }
-            if(time_count == tc[1]+cl_out_delay)
-            {
-                flag_circle_out = 0;
-            }
-        }*
-    }
-    else if(Balance_mode == 1)
-    {
-        //--------------检环-------------------
-        if(time_count>1000 && sumHM > 4000 && ad_data_now[MD] > 2700)
-        {
-            if(flag.circle < 2 && flag.circle_out==0)
-            {
-                flag.circle = 1;
-                mid[2] = mid[1];
-                mid[1] = mid[0];
-                mid[0] = (mid[0]+ad_data_now[MD])/2;
-                circle_val_dev = myfabs(mid[0] - mid[2]);
-                if(ad_data_now[MD] > 3500 && circle_val_dev < 10)
-                {
-                    //tc[0] = time_count;
-                    //flag_circle = 2;
-                    ///crcl_cnt++;
-                    //if(crcl_cnt>cl_num) crcl_cnt = 1;
-                    flag.buzz = 1;
-                }
-            }
-        }
         else
-        {
-            flag.circle = 0;
-        }
+            circle_time_count[0] = 0;
         //--------------检环结束------------------
-
-    }*/
+    }
+    ftestVal[0] = error_out;    ///////////////////////////
     return error_out;
 }
 
@@ -504,8 +351,7 @@ int DirectionControl(void)
         bt[0][6] = bt[0][5] + barrier_delay[0];     bt[1][6] = bt[1][5] + barrier_delay[1];
         bt[0][7] = bt[0][6] + barrier_turn_t[0];    bt[1][7] = bt[1][6] + barrier_turn_t[1];
     }
-    flag.barrier = 0;
-    if(flag.barrier)
+    if(flag.obstacle)
     {
         barrier_time++;
         if(barrier_time > bt[Balance_mode][0] && barrier_time < bt[Balance_mode][1] || barrier_time > bt[Balance_mode][6] && barrier_time < bt[Balance_mode][7])
@@ -516,7 +362,7 @@ int DirectionControl(void)
             error_offset = 0;
         if(barrier_time > bt[Balance_mode][7])
         {
-            flag.barrier = 0;
+            flag.obstacle = 0;
         }
         //角速度内环---------
         pid_yaw[Balance_mode].error = CarAttitudeRate.Yaw + error_offset;
@@ -553,7 +399,7 @@ int DirectionControl(void)
         {
             flag.start = 1;
         }
-        if(ad_data_now[LH]+ad_data_now[MD]+ad_data_now[RH]<120 && flag.En_dir == 1 && flag.mode != MODE_DEBUG && flag.start>0 && flag.barrier==0)
+        if(ad_data_now[LH]+ad_data_now[MD]+ad_data_now[RH]<120 && flag.En_dir == 1 && flag.mode != MODE_DEBUG && flag.start>0 && flag.obstacle==0)
         {
             flag.lost = 1;
             printLog("Signal lost");
@@ -564,7 +410,7 @@ int DirectionControl(void)
     dir_out = limit(dir_out, DIROUTMAX);
     dir_out = (int)(dir_out_last * 0.2f + dir_out * 0.8f);
     dir_out_last = dir_out;
-    ftestVal[0] = dir_out;    ////////////////////////////
+    //ftestVal[0] = dir_out;    ////////////////////////////
     ////////////////////////////
     return dir_out;
 }
@@ -676,6 +522,10 @@ int SpeedControl(void)
             pid_speed[Balance_mode].p = pid_spd_set[0];
             pid_speed[Balance_mode].i = pid_spd_set[1];
         }
+        if(flag.circle > 0)
+            target_speed[1] = 0.8*target_speed_max[1];
+        else
+            target_speed[1] = target_speed_max[1];
         //速度输出pid
         pid_speed[Balance_mode].preError = pid_speed[Balance_mode].error;
         pid_speed[Balance_mode].error = target_speed[Balance_mode] - 0.3f*pid_dir[Balance_mode].error - pid_dir[Balance_mode].deriv - car_speed_now;
@@ -701,7 +551,7 @@ int SpeedControl(void)
     {
         speed_cnt = 0;
     }
-    speed_out = 0.4f*speed_out_pre + 0.6f*speed_out;//低通滤波
+    speed_out = 0.5f*speed_out_pre + 0.5f*speed_out;//低通滤波
     speed_out_pre = speed_out;
     return (int)speed_out;
 }

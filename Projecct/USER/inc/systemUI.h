@@ -26,4 +26,6 @@ void displayUI(void);
 void displayDebug(void);
 void printLog(int8 message[20]);
 
+extern uint16 distance;
+
 #endif

@@ -49,9 +49,9 @@ int DirectionControl(void);
 void motor_out(int angle_out, int speed_out, int dir_out);
 
 
-extern float k_hv[2],k_md[2],k_adc,k_ke[2];
+extern float k_hv[2],k_md[2],k_adc,k_hv_cin[2],k_hv_cout[2],k_x[2];
 extern float k_circle[5];
-extern int8 circle_offset[5];
+extern uint16 circle_offset[5];
 extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 barrier_turn_t[2], barrier_turn_k[2];

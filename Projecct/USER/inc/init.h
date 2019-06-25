@@ -26,12 +26,13 @@ typedef struct{
     uint8 start;
     uint8 mode;            //1-debug
     uint8 spd_rate;        //1低速 2中速 3高速
-    uint8 barrier;
+    uint8 obstacle;
     uint8 En_std;
     uint8 En_spd;
     uint8 En_dir;
     uint8 broken_road;
     uint8 circle;
+    uint8 mode_switch;
 }Flag_t;
 
 void pidInit(void);

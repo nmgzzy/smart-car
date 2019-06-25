@@ -3,17 +3,21 @@
 void system_init(void);
 void test(void);
 
-vuint16 distance = 0;
+uint16 distance = 0;
 
 int main(void)
 {
     system_init();
-    //uint16 distance;
-    //uint8 buf[2];
-    //uint8 a = 1, b = 10;
-    //uint8 cnt = 0;
+    uint8 buf[2];
+    uint8 a = 1, b = 20;
+    uint8 cnt = 0;
     flag.buzz = 1;
-    //uint32 t = 0;
+    uint32 t = 0;
+
+    if(Balance_mode == 0 && flag.mode_switch == 1)
+        ftm_pwm_duty(SERVO_FTM, SERVO_CH, 560);
+    else
+        ftm_pwm_duty(SERVO_FTM, SERVO_CH, 255);
 
     while(1)
     {
@@ -25,33 +29,30 @@ int main(void)
             }
         }
         if(Balance_mode == 0)
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 560);
-        else
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 235);
-        /*if(Balance_mode == 1)
         {
-            simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//三轮
+            simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//两轮
             distance = (buf[0]<<8) | buf[1];
         }
-        else if(Balance_mode == 0)
+        else if(Balance_mode == 1)
         {
             simiic_read_buf2(0xB0>>1, 0x00, IIC, buf, 2);//三轮
             distance = (buf[0]<<8) | buf[1];
         }
-        if(distance > 400 && distance < 900
-           && myfabs(image_error[0]) < 15 && time_count-t > 1500
-           && time_count > a*500 && time_count < b*500
-           && flag.circle == 0)
+        if(distance > 200 && distance < 900
+           && myfabs(pid_dir[Balance_mode].error) < 50 && time_count-t > 1500
+           && time_count > a*500 && time_count < b*500 //区间检测
+           && flag.circle == 0 && obstacle_cnt > 30)
         {
             cnt++;
             if(distance < 700 && cnt >= 3)
             {
-                flag.barrier = 1;
+                flag.obstacle = 1;
+                flag.buzz = 3;
                 t = time_count;
             }
         }
         else
-            cnt = 0;*/
+            cnt = 0;
         if(!gpio_get(SWICH_PIN) && time_count>500 && flag.lost == 0)
         {
             flag.lost = 1;
@@ -82,7 +83,7 @@ void system_init(void)
     BMX055_init();
     systick_delay_ms(5);
     ADC_init();
-    //communicate_init();
+    communicate_init();
     systick_delay_ms(10);
     displayUI();
     pit_init_ms(pit0,2)
@@ -121,10 +122,13 @@ void testServo(void)
 
 void testUART(void)
 {
+    uint8 i = 0;
+    communicate_init();
     while(1)
     {
-        uart_putstr(DEBUG_UART,"abcd567sffgxb000123456789\r\n");
-        systick_delay_ms(20);
+        i++;
+        uart_putchar(COM_UART, i);
+        systick_delay_ms(5);
     }
 }
 

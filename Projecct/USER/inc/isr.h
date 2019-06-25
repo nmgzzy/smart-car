@@ -35,6 +35,7 @@ void UART5_RX_TX_IRQHandler(void);
 
 extern uint16 set_time;
 extern uint32 time_count;
-
+extern uint8 obstacle_cnt;
+extern uint8 broken_road_cnt;
 
 #endif

@@ -19,12 +19,15 @@
  ********************************************************************************************************************/
 
 #include "isr.h"
-//#define _SWICH_
+#define _SWICH_
 #define _SEND_DATA_
 
 uint16 set_time = 12;
 uint32 time_count = 0;
 uint32 swich_time = 0;
+uint8 obstacle_cnt = 0;
+uint8 broken_road_cnt = 0;
+uint8 flag_broken_road_cnt = 0;
 
 void PIT0_IRQHandler(void)
 {
@@ -32,9 +35,8 @@ void PIT0_IRQHandler(void)
     //uint8 buf[2];
     //uint16 distance = 1500;
     //pit_time_start(pit2);
-    static uint8 cnt=0;//,i, barrier_cnt = 0;
+    static uint8 cnt=0, br_cnt = 0;//,i, barrier_cnt = 0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
-    //uint8 send[24] = {0};
     time_count++;
     CounterDecrease();
     if(time_count>500*set_time && flag.mode != MODE_DEBUG)
@@ -49,13 +51,27 @@ void PIT0_IRQHandler(void)
     motor_out(angle_out, speed_out, dir_out);
     buzzer_control();
 
-    if(flag.mode == MODE_START)
+#ifdef _SWICH_
+    if(flag.broken_road == 1 && flag.mode_switch == 0 && time_count - swich_time > 500*3)
     {
-        /*if(time_count - swich_time < 750 && swich_time != 0)
-            stepping_motor(Balance_mode == 1 ? 1: -1);
-        else
-            stepping_motor(0);*/
+        flag.mode_switch = 1;
+        swich_time = time_count;
+        if(Balance_mode == 0)
+            Balance_mode = 1;
     }
+    if(flag.mode_switch == 1 && Balance_mode == 1)
+    {
+        br_cnt++;
+        if(br_cnt > 250)
+        {
+            flag.mode_switch = 0;
+            br_cnt = 0;
+            Balance_mode = 0;
+        }
+    }
+    else
+        flag.mode_switch = 0;
+#endif
 
     if(cnt%10 == 0)
     {
@@ -66,7 +82,6 @@ void PIT0_IRQHandler(void)
 
     if(cnt >= 50)
     {
-        //communicate_send(&Balance_mode, BLC_, 1);
         cnt = 0;
     }
     cnt++;
@@ -114,30 +129,18 @@ void UART5_RX_TX_IRQHandler(void)
         if(com_receive_flag == 1 && time_count > 0)
         {
             com_receive_flag = 0;
-            /*if(com_format == ERR_)
-            {
-                for(i = 4; i > 0; i--)
-                    image_error[i] = image_error[i-1];
-                image_error[0] = Byte2Float(com_receive_data);
-                if(myfabs(image_error[0] - image_error[1]) > 10)
-                    image_error[0] = faverage(image_error, 5);
-            }
-            if(com_format == BUZ_)
-            {
-                //flag.buzz = com_receive_data[0];
-            }
-            if(com_format == ROD_)
-            {
-                flag.broken_road = com_receive_data[0];
-            }
-#ifdef _SWICH_
-            if(com_format == SWC_ && flag.barrier == 0)
-            {
-                Balance_mode = Balance_mode == 0 ? 1 : 0;
-                swich_time = time_count;
-            }
-#endif
-            */
+            obstacle_cnt = (uint8)(com_receive_data[0] * 0.8f + obstacle_cnt * 0.2f);
+            broken_road_cnt = (uint8)(com_receive_data[1] * 0.6f + broken_road_cnt * 0.4f);
+            if(broken_road_cnt > 180 && flag_broken_road_cnt < 30)
+                flag_broken_road_cnt++;
+            else if(flag_broken_road_cnt > 3 && broken_road_cnt < 100)
+                flag_broken_road_cnt-=3;
+            else if(flag_broken_road_cnt > 0)
+                flag_broken_road_cnt--;
+            if(flag_broken_road_cnt > 5)
+                flag.broken_road = 1;
+            else
+                flag.broken_road = 0;
         }
     }
     if(UART5->S1 & UART_S1_TDRE_MASK )                                    //发送数据寄存器空

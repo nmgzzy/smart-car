@@ -36,13 +36,12 @@ void communicate_uart_interrupt(void)
         }
         else com_receive_num = 0;
     }
-    else if(com_receive_num == 3) com_format = com_receive[com_receive_num-1];//记录格式
-    else if(com_receive_num == 4) com_len = com_receive[com_receive_num-1];//记录数据长度
-    else if(com_receive_num == com_len+5 && com_receive[com_receive_num-1] == sum)//结束标志校验
+    else if(com_receive_num == 3) com_len = com_receive[com_receive_num-1];//记录数据长度
+    else if(com_receive_num == com_len+4 && com_receive[com_receive_num-1] == sum)//结束标志校验
     {
         for(i=0; i<com_len; i++)
         {
-            com_receive_data[i] = com_receive[i+4];//更新数据
+            com_receive_data[i] = com_receive[i+3];//更新数据
         }
         com_receive_num = 0;
         com_receive_flag = 1;
@@ -53,14 +52,14 @@ void communicate_uart_interrupt(void)
         com_receive_num = 0;
         sum=0;
     }
-    else if(com_receive_num>4 && com_receive_num<com_len+5)//计算校验位
+    else if(com_receive_num>3 && com_receive_num<com_len+4)//计算校验位
     {
         sum += com_receive[com_receive_num-1];
     }
 }
 
 //发送数据
-void communicate_send(uint8* data, uint8 format, uint32 len)
+void communicate_send(uint8* data, uint32 len)
 {
     uint32 i;
     uint8 sum=0;
@@ -70,7 +69,6 @@ void communicate_send(uint8* data, uint8 format, uint32 len)
     }
     uart_putchar(COM_UART, 0xF0);
     uart_putchar(COM_UART, 0xA5);
-    uart_putchar(COM_UART, format);
     uart_putchar(COM_UART, len);
     uart_putbuff(COM_UART, data, len);
     uart_putchar(COM_UART, sum);//校验位

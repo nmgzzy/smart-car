@@ -21,7 +21,9 @@ void pidInit(void)
     flag.En_std = 1;
     flag.En_spd = 1;
     flag.En_dir = 1;
+    flag.obstacle = 0;
     flag.broken_road = 0;
+    flag.mode_switch = 0;
     //---------------直立--------------------
     //角度pid
     pid_angle[0].p = 125;

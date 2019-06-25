@@ -170,12 +170,12 @@
 #define SWICH_PIN  E11
 
 //??????????
-#define ADC_LH   ADC1_SE12
-#define ADC_LV   ADC1_SE13
+#define ADC_LH   ADC1_SE13
+#define ADC_LV   ADC1_SE12
 #define ADC_LX   ADC1_SE11
 #define ADC_MD   ADC1_SE10
-#define ADC_RH   ADC0_SE12
-#define ADC_RV   ADC0_SE9
+#define ADC_RH   ADC0_SE9
+#define ADC_RV   ADC0_SE12
 #define ADC_RX   ADC0_SE13
 #define OTHERAD  ADC0_SE8
 //??????????
