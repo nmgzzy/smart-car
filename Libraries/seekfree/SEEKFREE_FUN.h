@@ -25,7 +25,8 @@
 
 #include "headfile.h"
 
-int signal(int data);
+float trapezoid_fun(uint32 x, uint16 up, uint16 t, uint16 down, float max);
+float signal(int data);
 float faverage(float* data, uint8 num);
 int   myabs(int dat);
 float myfabs(float dat);

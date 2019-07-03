@@ -72,6 +72,5 @@
 #include "control.h"
 #include "isr.h"
 
-void play(uint8 cmd);
 
 #endif

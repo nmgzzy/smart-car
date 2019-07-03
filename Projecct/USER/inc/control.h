@@ -51,17 +51,18 @@ void motor_out(int angle_out, int speed_out, int dir_out);
 
 extern float k_hv[2],k_md[2],k_adc,k_hv_cin[2],k_hv_cout[2],k_x[2];
 extern float k_circle[5];
-extern uint16 circle_offset[5];
+extern int16 circle_offset[5];
 extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 obstacle_turn_t[2], obstacle_turn_k[2];
 extern uint16 obstacle_delay[2], obstacle_delay_out[2];
-extern int8 obstacle_turn_dir;
+extern int8 obstacle_turn_dir[2];
 extern float car_speed_now;
 extern int16 target_speed[2];
 extern int16 target_speed_max[2];
 extern uint16 cl_out_delay, cl_time, spd_acc;
 extern uint8 cl_num;
+extern int8 circle_dir;
 extern uint16 ad_data_now[NUM_OF_AD];
 extern uint8 Balance_mode;
 

@@ -32,9 +32,9 @@ void data_read(uint8 n)
         pid_dir[1].d    = parameter[i++] / 100.0f;
         pid_yaw[0].p    = parameter[i++] / 100.0f;
         pid_yaw[0].d    = parameter[i++] / 100.0f;
+        //20
         pid_yaw[1].p    = parameter[i++] / 100.0f;
         pid_yaw[1].d    = parameter[i++] / 100.0f;
-        //20
         set_time            = parameter[i++];
         target_angle[0]     = parameter[i++] / 10.0f;
         target_angle[1]     = parameter[i++] / 10.0f;
@@ -53,13 +53,13 @@ void data_read(uint8 n)
         k_x[1]    = parameter[i++] / 100.0f;
         obstacle_turn_t[0]     = parameter[i++];
         obstacle_turn_k[0]     = parameter[i++];
-        obstacle_delay_out[0]  = parameter[i++];
-        obstacle_turn_dir      = parameter[i++];
         //40
+        obstacle_delay_out[0]  = parameter[i++];
+        obstacle_turn_dir[0]   = parameter[i++];
         flag.En_std      = parameter[i++];
         flag.En_spd      = parameter[i++];
         flag.En_dir      = parameter[i++];
-        i++;//k_ke[0]          = parameter[i++]/100.0f;
+        circle_dir       = parameter[i++];
         i++;//k_ke[1]          = parameter[i++]/100.0f;
         cl_num           = parameter[i++];
         cl_time          = parameter[i++];
@@ -74,16 +74,16 @@ void data_read(uint8 n)
         k_circle[4]      = parameter[i++]/100.0f;
         circle_offset[4] = parameter[i++];
         k_hv_cin[0]      = parameter[i++]/100.0f;
+        //60
         k_hv_cin[1]      = parameter[i++]/100.0f;
         k_hv_cout[0]     = parameter[i++]/100.0f;
-        //60
         k_hv_cout[1]     = parameter[i++]/100.0f;
         obstacle_delay[0]      = parameter[i++];
         obstacle_delay[1]      = parameter[i++];
         obstacle_turn_t[1]     = parameter[i++];
         obstacle_turn_k[1]     = parameter[i++];
         obstacle_delay_out[1]  = parameter[i++];
-
+        obstacle_turn_dir[1]   = parameter[i++];
     }
 }
 
@@ -129,12 +129,12 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_turn_t[0];
     parameter[i++] = (int16)obstacle_turn_k[0];
     parameter[i++] = (int16)obstacle_delay_out[0];
-    parameter[i++] = (int16)obstacle_turn_dir;
+    parameter[i++] = (int16)obstacle_turn_dir[0];
 
     parameter[i++] = (int16)flag.En_std;
     parameter[i++] = (int16)flag.En_spd;
     parameter[i++] = (int16)flag.En_dir;
-    i++;//parameter[i++] = (int16)(k_ke[0] * 100);
+    parameter[i++] = (int16)circle_dir;
     i++;//parameter[i++] = (int16)(k_ke[1] * 100);
     parameter[i++] = (int16)cl_num;
     parameter[i++] = (int16)cl_time;
@@ -157,6 +157,7 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_turn_t[1];
     parameter[i++] = (int16)obstacle_turn_k[1];
     parameter[i++] = (int16)obstacle_delay_out[1];
+    parameter[i++] = (int16)obstacle_turn_dir[1];
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);

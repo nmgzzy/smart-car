@@ -17,7 +17,7 @@
 //private
 static uint16 voltage = 0;
 static uint8 flag_updown=0;
-static int8 flag_plus_minus=0;
+static int8 flag_plus_minus=0, flag_symbol = 0;
 static double show_parameter;
 
 
@@ -43,10 +43,10 @@ static void print_menu(uint8 page, uint8 choice)
             "set",
             "show",
             "Param1",
-            "Param2",
-            "Param3",
-            "Param4",
-            "Param5"
+            "Param2-ang-spd",
+            "Param3-dirpid",
+            "Param4-dir",
+            "Param5-ob"
         },
         //page2-set
         {
@@ -90,9 +90,9 @@ static void print_menu(uint8 page, uint8 choice)
             "spdKp2",
             "spdKi2",
             "spdKp 3",
-            "spdKi 3",
+            "spdKi 3"
         },
-        //page6
+        //page6-param3
         {
             "dirKp2",
             "dirKd2",
@@ -103,7 +103,7 @@ static void print_menu(uint8 page, uint8 choice)
             "yawKp 3",
             "yawKd 3"
         },
-        //page7
+        //page7-param4
         {
             "spdKd2",
             "spdKd 3",
@@ -114,21 +114,21 @@ static void print_menu(uint8 page, uint8 choice)
             "k_x2",
             "k_x 3"
         },
-        //page8
+        //page8-param5
         {
             "ob_t2",
             "ob_k2",
             "ob_dly_o2",
-            "obdir +L-R",
-            "",
-            "",
-            "cl_num",
-            "cl_time_in"
+            "ob_t 3",
+            "ob_k 3",
+            "ob_dly_o 3",
+            "obdir1 +L-R",
+            "obdir2 +L-R"
         },
         //page9
         {
-            "Param6",
-            "Param7",
+            "Param6-ob-cl",
+            "Param7-cl",
             "Param8",
             "",
             "",
@@ -136,33 +136,33 @@ static void print_menu(uint8 page, uint8 choice)
             "",
             ""
         },
-        //page10
+        //page10-param6
         {
+            "ob_dly2",
+            "ob_dly 3",
             "k_c1",
             "c_o1",
             "k_c2",
             "c_o2",
             "k_c3",
-            "c_o3",
-            "k_c4",
-            "c_o4"
+            "c_o3"
         },
-        //page11
+        //page11-param7
         {
-            "k_c5",
-            "c_o5",
+            "cl_num",
+            "cl_time_in",
             "kHcin2",
             "kHcin 3",
             "kHcout2",
             "kHcout 3",
-            "ob_dly2",
-            "ob_dly 3"
+            "run dir",
+            ""
         },
-        //page12
+        //page12-param8
         {
-            "ob_t 3",
-            "ob_k 3",
-            "ob_dly_o 3",
+            "",
+            "",
+            "",
             "",
             "",
             "Par1",
@@ -190,9 +190,9 @@ static void print_menu(uint8 page, uint8 choice)
                 OLED_P6x8Str(10,i,menu[page][i]);
             OLED_P8x16Str(100,0,"NNU");
             OLED_P8x16Str(100,2,"ZZY");
-            voltage = adc_once(VBAT_PIN,ADC_12bit);
-            voltage = (uint16)(limit_ab(voltage - 2926, 0 , 448)/4.48f);
-            OLED_Print_uint16(80, 7, voltage, 0, 0);
+            voltage = (uint16)(voltage*0.9f+adc_once(VBAT_PIN,ADC_12bit)*0.1f);
+            i = (uint8)(limit_ab(voltage - 2926, 0 , 399)/4.0f);
+            OLED_Print_uint16(90, 7, i, 0, 0);
             break;
         case 2:         //set
             for(i=0; i<8; i++)
@@ -246,7 +246,8 @@ static void print_menu(uint8 page, uint8 choice)
         default:         //parameter
             for(i=0; i<8; i++)
                 OLED_P6x8Str(7,i,menu[page][i]);
-            OLED_Print_float(64, 0, show_parameter, 4, 3);
+            if(page!=9)
+                OLED_Print_float(64, 0, show_parameter, 4, 3);
             break;
     }
     last_page = page;
@@ -317,6 +318,11 @@ static void adj_u8(uint8* k, uint8 step)
 static void adj_i8(int8* k, uint8 step)
 {
     show_parameter = *k;
+    if(flag_symbol == 1)
+    {
+        flag_symbol = 0;
+        *k = -*k;
+    }
     if(flag_plus_minus != 0)
     {
         *k += flag_plus_minus*step;
@@ -340,6 +346,11 @@ static void adj_u16(uint16* k, uint8 step)
 static void adj_i16(int16* k, uint8 step)
 {
     show_parameter = *k;
+    if(flag_symbol == 1)
+    {
+        flag_symbol = 0;
+        *k = -*k;
+    }
     if(flag_plus_minus != 0)
     {
         *k += flag_plus_minus*step;
@@ -390,33 +401,33 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 33)    adj_u16(&obstacle_turn_t[0], 5);
     else if(flag_parameters == 34)    adj_u16(&obstacle_turn_k[0], 5);
     else if(flag_parameters == 35)    adj_u16(&obstacle_delay_out[0], 10);
-    else if(flag_parameters == 36)    adj_i8(&obstacle_turn_dir, 1);
-    else if(flag_parameters == 37)    ;//adj_f(&k_ke[0], 0.2);
-    else if(flag_parameters == 38)    ;//adj_f(&k_ke[1], 0.2);
-    else if(flag_parameters == 39)    adj_u8(&cl_num, 1);
-    else if(flag_parameters == 40)    adj_u16(&cl_time, 5);
+    else if(flag_parameters == 36)    adj_u16(&obstacle_turn_t[1], 5);
+    else if(flag_parameters == 37)    adj_u16(&obstacle_turn_k[1], 5);
+    else if(flag_parameters == 38)    adj_u16(&obstacle_delay_out[1], 10);
+    else if(flag_parameters == 39)    adj_i8(&obstacle_turn_dir[0], 2);
+    else if(flag_parameters == 40)    adj_i8(&obstacle_turn_dir[1], 2);
     ////////////////////////////
-    else if(flag_parameters == 41)    adj_f(&k_circle[0], 0.05);
-    else if(flag_parameters == 42)    adj_u16(&circle_offset[0], 1);
-    else if(flag_parameters == 43)    adj_f(&k_circle[1], 0.05);
-    else if(flag_parameters == 44)    adj_u16(&circle_offset[1], 1);
-    else if(flag_parameters == 45)    adj_f(&k_circle[2], 0.05);
-    else if(flag_parameters == 46)    adj_u16(&circle_offset[2], 1);
-    else if(flag_parameters == 47)    adj_f(&k_circle[3], 0.05);
-    else if(flag_parameters == 48)    adj_u16(&circle_offset[3], 1);
+    else if(flag_parameters == 41)    adj_u16(&obstacle_delay[0], 5);
+    else if(flag_parameters == 42)    adj_u16(&obstacle_delay[1], 5);
+    else if(flag_parameters == 43)    adj_f(&k_circle[0], 0.05);
+    else if(flag_parameters == 44)    adj_i16(&circle_offset[0], 1);
+    else if(flag_parameters == 45)    adj_f(&k_circle[1], 0.05);
+    else if(flag_parameters == 46)    adj_i16(&circle_offset[1], 1);
+    else if(flag_parameters == 47)    adj_f(&k_circle[2], 0.05);
+    else if(flag_parameters == 48)    adj_i16(&circle_offset[2], 1);
     ////////////////////////////
-    else if(flag_parameters == 49)    adj_f(&k_circle[4], 0.05);
-    else if(flag_parameters == 50)    adj_u16(&circle_offset[4], 1);
+    else if(flag_parameters == 49)    adj_u8(&cl_num, 1);
+    else if(flag_parameters == 50)    adj_u16(&cl_time, 5);
     else if(flag_parameters == 51)    adj_f(&k_hv_cin[0], 0.5);
     else if(flag_parameters == 52)    adj_f(&k_hv_cin[1], 0.5);
     else if(flag_parameters == 53)    adj_f(&k_hv_cout[0], 0.5);
     else if(flag_parameters == 54)    adj_f(&k_hv_cout[1], 0.5);
-    else if(flag_parameters == 55)    adj_u16(&obstacle_delay[0], 5);
-    else if(flag_parameters == 56)    adj_u16(&obstacle_delay[1], 5);
+    else if(flag_parameters == 55)    adj_i8(&circle_dir, 2);
+    else if(flag_parameters == 56)    ;
     ////////////////////////////
-    else if(flag_parameters == 57)    adj_u16(&obstacle_turn_t[1], 5);
-    else if(flag_parameters == 58)    adj_u16(&obstacle_turn_k[1], 5);
-    else if(flag_parameters == 59)    adj_u16(&obstacle_delay_out[1], 10);
+    else if(flag_parameters == 57)    ;
+    else if(flag_parameters == 58)    ;
+    else if(flag_parameters == 59)    ;
 
     else if(flag_parameters == 60)    ;//adj_u16(&barrier_turn_t[1], 5);
     else if(flag_parameters == 61)    ;//adj_u16(&barrier_turn_k[1], 5);
@@ -522,7 +533,7 @@ void displayUI(void)
                 flag_updown = 0;
             else
             {
-                if(page >= 2 && page <= 8)
+                if(page >= 2 && page <= 9)
                 {
                     page = 1;
                 }
@@ -544,6 +555,10 @@ void displayUI(void)
             else if(page == 9)
             {
                 page = choice+9;
+            }
+            if(flag_updown == 1)
+            {
+                flag_symbol = 1;
             }
         }
 
@@ -646,7 +661,7 @@ void displayUI(void)
 void displayDebug(void)
 {
     int8 buff[20];
-    sprintf(buff, "Pch:%3.1f \0", CarAttitude.Pitch);
+    sprintf(buff, "Pch:%3.1f Mg:%d \0", CarAttitude.Pitch, Q_raw.Mag);
     OLED_P6x8Str(0, 0, (uint8*)buff);
     sprintf(buff, "Prt:%3.1f \0", CarAttitudeRate.Pitch);
     OLED_P6x8Str(0, 1, (uint8*)buff);
@@ -654,7 +669,7 @@ void displayDebug(void)
     OLED_P6x8Str(0, 2, (uint8*)buff);
     sprintf(buff, "Yrt:%3.1f \0", CarAttitudeRate.Yaw);
     OLED_P6x8Str(0, 3, (uint8*)buff);
-    sprintf(buff, "ob:%3d \0", obstacle_cnt);
+    sprintf(buff, "ob:%3d \0", obstacle_pix);
     OLED_P6x8Str(0, 4, (uint8*)buff);
     sprintf(buff, "br:%3d \0", broken_road_cnt);
     OLED_P6x8Str(0, 5, (uint8*)buff);

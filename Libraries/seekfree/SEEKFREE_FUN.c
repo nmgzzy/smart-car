@@ -22,8 +22,21 @@
 
 #include "SEEKFREE_FUN.h"
 
+float trapezoid_fun(uint32 x, uint16 up, uint16 t, uint16 down, float max)
+{
+    float y;
+    if(x >= up && x <= up + t)
+        y = max;
+    else if(x < up)
+        y = max*x/up;
+    else if(x > up+t && x < up+t+down)
+        y = max - max/down*(x-up-t);
+    else
+        y = 0;
+    return y;
+}
 
-int signal(int data)
+float signal(int data)
 {
     if(data < 0)
         return -1;

@@ -43,13 +43,12 @@ int main(void)
            && myfabs(pid_dir[Balance_mode].error) < Balance_mode?50:35
            && (time_count-t > 500*5 || t == 0)
            && time_count > a*500 && time_count < b*500 //区间检测
-           && obstacle_cnt > 30)
+           && obstacle_pix > 30)
         {
             cnt++;
-            if(cnt >= 3 && (distance < 700 || obstacle_cnt > 100))
+            if(cnt >= 3 && (distance < 800 || obstacle_pix > Balance_mode?40:90))
             {
                 flag.obstacle = 1;
-                flag.buzz = 1;///////////////////////////////
                 t = time_count;
             }
         }
@@ -87,7 +86,6 @@ void system_init(void)
     systick_delay_ms(10);
     ADC_init();
     communicate_init();
-    play(0);systick_delay_ms(10);play(1);
     displayUI();
     pit_init_ms(pit0,2)
     set_irq_priority(PIT0_IRQn,1);

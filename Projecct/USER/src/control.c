@@ -6,7 +6,7 @@
 EulerAngleTypedef      CarAttitude;            /////姿态角
 EulerAngleTypedef      CarAttitudeRate;        /////姿态角速度
 float AccZAngle = 0;
-float target_angle[2] = {0, -24.5};
+float target_angle[2] = {-1, -25};
 
 uint8 Balance_mode = 0; //0-直立 1-三轮
 
@@ -19,10 +19,10 @@ int BalanceControl(void)
     float t;
     cnt++; if(cnt >= 10) cnt = 0;
 
-    //if(cnt)
+    if(cnt)
         BMX055_DataRead(&Q_raw, 0);
-    //else
-        //BMX055_DataRead(&Q_raw, 1);
+    else
+        BMX055_DataRead(&Q_raw, 1);
     //正常1500-1800
     //有磁铁Mag<1400||Mag>1900 变化率很大
     //ftestVal[2] = Q_raw.Mag;//////////////////////////////
@@ -97,7 +97,7 @@ int BalanceControl(void)
     angle_out = (int)pid_angle[Balance_mode].output;
     if(flag.En_std == 0)
         angle_out = 0;
-    ftestVal[0] = angle_out;////////////////////
+    //ftestVal[0] = angle_out;////////////////////
     return angle_out;
 }
 
@@ -133,13 +133,13 @@ void ADC_get(void)
         ad_raw_data_now[RX] += adc_once(ADC_RX,ADC_12bit);
         ad_raw_data_now[MD] += adc_once(ADC_MD,ADC_12bit);
     }
-    ad_raw_data_now[LH] /= SAMPLING_NUM;
-    ad_raw_data_now[RH] /= SAMPLING_NUM;
-    ad_raw_data_now[LV] /= SAMPLING_NUM;
-    ad_raw_data_now[RV] /= SAMPLING_NUM;
-    ad_raw_data_now[LX] /= SAMPLING_NUM;
-    ad_raw_data_now[RX] /= SAMPLING_NUM;
-    ad_raw_data_now[MD] /= SAMPLING_NUM;
+    ad_raw_data_now[LH] /= SAMPLING_NUM;    //3300  700
+    ad_raw_data_now[RH] /= SAMPLING_NUM;    //3300  700
+    ad_raw_data_now[LV] /= SAMPLING_NUM;    //3000  2400
+    ad_raw_data_now[RV] /= SAMPLING_NUM;    //3000  2400
+    ad_raw_data_now[LX] /= SAMPLING_NUM;    //3000  2400
+    ad_raw_data_now[RX] /= SAMPLING_NUM;    //3000  2400
+    ad_raw_data_now[MD] /= SAMPLING_NUM;    //3000
 
     //记录原始数据
     for(i = 0; i < NUM_OF_AD; i++)
@@ -160,11 +160,14 @@ void ADC_get(void)
 }
 
 float k_circle[5] = {1,1,1,1,1};//入环偏差系数
-uint16 circle_offset[5] = {200,300,200,200,200};
+int16 circle_offset[5] = {200,300,200,200,200};
+uint8 circle_size[5] = {1,1,3,2,2};
 uint8 cl_num = 3;
 uint16 cl_out_delay = 400, cl_time = 40;//环参数
-int16 circle_time_count[5] = {0};
+int16 circle_time_count[2] = {0};
+int8 circle_dir = 1;
 int8 crcl_cnt = -1;
+int8 crcl_cnt2 = 0;
 
 float ErrorCalculate(uint8 mode)
 {
@@ -173,7 +176,7 @@ float ErrorCalculate(uint8 mode)
     static float yaw_integ = 0;//, circle_val[5], mid[3]
     static int16 difX_div[5] = {0};
     int16 difH, difV, difX;//, a, b;
-    uint16 sumH, sumV, sumX, sumHM, sumHM2, sumHM3, sumHM4;
+    uint16 sumH, sumV, sumX, sumHM, sumHM2;//, sumHM3, sumHM4;
     //float error_a = 0;
     //int8 sgn = 0;
     //float error_offset = 0;
@@ -186,8 +189,8 @@ float ErrorCalculate(uint8 mode)
     sumX = ad_data_now[LX]+ad_data_now[RX]+1;
     sumHM = sumH + ad_data_now[MD] + 1;
     sumHM2 = (uint16)(sumH + k_md[mode]*ad_data_now[MD] + 1);
-    sumHM3 = (uint16)(0.7f*sumH + 0.2f*sumX + (k_md[mode]+0.1f)*ad_data_now[MD] + 1);
-    sumHM4 = (uint16)(0.7f*sumH + 0.3f*sumV + k_md[mode]*ad_data_now[MD] + 1);
+    //sumHM3 = (uint16)(0.7f*sumH + 0.2f*sumX + (k_md[mode]+0.1f)*ad_data_now[MD] + 1);
+    //sumHM4 = (uint16)(0.7f*sumH + 0.3f*sumV + k_md[mode]*ad_data_now[MD] + 1);
 
     error1 = 10 * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV + k_x[mode]*difX)/sumHM2;
     error_out = error1;
@@ -201,14 +204,14 @@ float ErrorCalculate(uint8 mode)
     //errorV = k_ke[mode] * difV/sumV;
     //errorVH = k_ke[mode] * difV/sumH;
 
-    /*ftestVal[0] = myabs(difH);             /////////////////////////
+    ftestVal[0] = myabs(difH);             /////////////////////////
     ftestVal[1] = myabs(difV);             ///////////////////////
     ftestVal[2] = myabs(difX);            /////////////////////////
     ftestVal[3] = sumHM;    ///////////////////////
     ftestVal[4] = sumV;              /////////////////////////
     ftestVal[5] = ad_data_now[MD];   ///////////////////////
     ftestVal[6] = 500*flag.circle;   ///////////////////////
-*/
+
     if(Balance_mode == 0)
     {
         //--------------检环-------------------
@@ -235,7 +238,7 @@ float ErrorCalculate(uint8 mode)
         {
             yaw_integ += CarAttitudeRate.Yaw*0.002f;
             circle_time_count[1]++;
-            error2 = k_circle[crcl_cnt]*10*(signal(difV)*circle_offset[crcl_cnt] + k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM3;
+            error2 = k_circle[crcl_cnt]*10*(signal(difV)*circle_offset[crcl_cnt] + k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM2;
             if(circle_time_count[1] < cl_time)
                 error_out = error2;
             if((yaw_integ > 330 || yaw_integ < -330) && sumHM > 4500 && difX < 500)
@@ -252,7 +255,7 @@ float ErrorCalculate(uint8 mode)
             circle_time_count[1]++;
             if(circle_time_count[1] > 500)
                 flag.circle = 0;
-            error2 = k_circle[crcl_cnt]*8*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM4;
+            error2 = k_circle[crcl_cnt]*8*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM2;
             error_out = error2;
         }
 
@@ -282,12 +285,17 @@ float ErrorCalculate(uint8 mode)
             for(uint8 i=4; i>0; i--)
                 difX_div[i] = difX_div[i-1];
             difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
-            if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 1500)
+            if(((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 1500)
+                || myabs(difX_div[2]) > 2000)
             {
                 flag.circle = 2;
                 yaw_integ = 0;
                 crcl_cnt++;
                 if(crcl_cnt >= cl_num) crcl_cnt = 0;
+                if(circle_dir < 0)
+                    crcl_cnt2 = cl_num - 1 - crcl_cnt;
+                else
+                    crcl_cnt2 = crcl_cnt;
                 flag.buzz = 1;///////////////////////////
                 circle_time_count[1] = 0;
             }
@@ -296,10 +304,11 @@ float ErrorCalculate(uint8 mode)
         {
             yaw_integ += CarAttitudeRate.Yaw*0.002f;
             circle_time_count[1]++;
-            error2 = k_circle[crcl_cnt]*10*(signal(difV)*circle_offset[crcl_cnt] + k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM3;
+            error2 = k_circle[crcl_cnt2]*10*(k_hv_cin[mode]*difH+(10.0f-k_hv_cin[mode])*difV)/sumHM2
+                + circle_dir*circle_offset[crcl_cnt2];
             if(circle_time_count[1] < cl_time)
                 error_out = error2;
-            if((yaw_integ > 340 || yaw_integ < -340) && sumHM > 8500 && difX < 500)
+            if((myfabs(yaw_integ) > 330) && sumHM > 5500 && (difX < 500 || ad_data_now[MD] > 3500))
             {
                 flag.circle = 3;
                 circle_time_count[1] = 0;
@@ -311,15 +320,24 @@ float ErrorCalculate(uint8 mode)
             circle_time_count[1]++;
             if(circle_time_count[1] > 500)
                 flag.circle = 0;
-            error2 = k_circle[crcl_cnt]*8*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM4;
+            error2 = k_circle[crcl_cnt2]*10*(k_hv_cout[mode]*difH+(10.0f-k_hv_cout[mode])*difX)/sumHM2;
             error_out = error2;
         }
 
-
-        if(flag.circle > 0)
+        if(flag.circle == 1)
         {
             circle_time_count[0]++;
-            if(circle_time_count[0] > 4*500)
+            if(circle_time_count[0] > 3*500)
+            {
+                circle_time_count[0] = 0;
+                flag.circle = 0;
+                flag.buzz = 2;////////////////////////////
+            }
+        }
+        else if(flag.circle > 1)
+        {
+            circle_time_count[0]++;
+            if(circle_time_count[0] > 6*500)
             {
                 circle_time_count[0] = 0;
                 flag.circle = 0;
@@ -345,8 +363,9 @@ uint16 obstacle_turn_t[2] = {70,80};
 uint16 obstacle_turn_k[2] = {400,360};
 uint16 obstacle_delay[2]  = {95,120};
 uint16 obstacle_delay_out[2] = {90,60};
-int8 obstacle_turn_dir = -1;
+int8 obstacle_turn_dir[2] = {-1,1};
 uint16 bt[2][8];
+uint8 obstacle_cnt = 0;
 
 int DirectionControl(void)
 {
@@ -376,14 +395,15 @@ int DirectionControl(void)
         speed_k = -2*speed_rate/3 + 1.7;
         obstacle_time++;
         if(obstacle_time > bt[Balance_mode][0] && obstacle_time < bt[Balance_mode][1] || obstacle_time > bt[Balance_mode][6] && obstacle_time < bt[Balance_mode][7])
-            error_offset =  obstacle_turn_dir * obstacle_turn_k[Balance_mode] * speed_k;
+            error_offset =  obstacle_turn_dir[obstacle_cnt] * obstacle_turn_k[Balance_mode] * speed_k;
         else if(obstacle_time > bt[Balance_mode][2] && obstacle_time < bt[Balance_mode][3] || obstacle_time > bt[Balance_mode][4] && obstacle_time < bt[Balance_mode][5])
-            error_offset = -obstacle_turn_dir * obstacle_turn_k[Balance_mode] * speed_k;
+            error_offset = -obstacle_turn_dir[obstacle_cnt] * obstacle_turn_k[Balance_mode] * speed_k;
         else
             error_offset = 0;
         if(obstacle_time > bt[Balance_mode][7])
         {
             flag.obstacle = 0;
+            obstacle_cnt++;
         }
         //角速度内环---------
         pid_yaw[Balance_mode].error = CarAttitudeRate.Yaw + error_offset;
@@ -582,7 +602,7 @@ int SpeedControl(void)
             speed_out = speed_out_pre + spd_acc;
     }
 
-    ftestVal[3] = speed_out;/////////////////////////////////////
+    //ftestVal[3] = speed_out;/////////////////////////////////////
 
     if(flag.En_spd == 0 || spd_en == 0)       //直立模式或调试模式不输出速度
     {
@@ -594,9 +614,9 @@ int SpeedControl(void)
     }
     speed_out = 0.5f*speed_out_pre + 0.5f*speed_out;//低通滤波
     speed_out_pre = speed_out;
-    ftestVal[1] = car_speed_now;/////////////////////////////////////
-    ftestVal[2] = target_speed[Balance_mode];/////////////////////////////////////
-    ftestVal[4] = pid_speed[Balance_mode].integ;/////////////////////////////////////
+    //ftestVal[1] = car_speed_now;/////////////////////////////////////
+    //ftestVal[2] = target_speed[Balance_mode];/////////////////////////////////////
+    //ftestVal[4] = pid_speed[Balance_mode].integ;/////////////////////////////////////
     return (int)speed_out;
 }
 //-----------------速度控制-以上-----------------------------

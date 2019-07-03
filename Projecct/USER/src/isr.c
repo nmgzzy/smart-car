@@ -25,7 +25,7 @@
 uint16 set_time = 12;
 uint32 time_count = 0;
 uint32 swich_time = 0, swich_time2 = 0;
-uint8 obstacle_cnt = 0;
+uint8 obstacle_pix = 0;
 uint8 broken_road_cnt = 0;
 uint8 flag_broken_road_cnt = 0;
 
@@ -107,7 +107,7 @@ void UART5_RX_TX_IRQHandler(void)
         {
             com_receive_flag = 0;
             flag.broken_road_last = flag.broken_road;
-            obstacle_cnt = (uint8)(com_receive_data[0] * 0.8f + obstacle_cnt * 0.2f);
+            obstacle_pix = (uint8)(com_receive_data[0] * 0.8f + obstacle_pix * 0.2f);
             broken_road_cnt = (uint8)(com_receive_data[1] * 0.7f + broken_road_cnt * 0.3f);
             if(broken_road_cnt > 180 && flag_broken_road_cnt < 30)
                 flag_broken_road_cnt++;
@@ -155,43 +155,6 @@ void UART5_RX_TX_IRQHandler(void)
 }
 
 
-
-//-------------------------------------------------------------------------------------------------------------------
-//  @brief      UART3中断执行函数
-//  @return     void
-//  @since      v1.0
-//  Sample usage:               当UART3启用中断功能且发生中断的时候会自动执行该函数
-//-------------------------------------------------------------------------------------------------------------------
-/*void UART3_RX_TX_IRQHandler(void)
-{
-    uint8 i;
-    if(UART3->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
-    {
-        //用户需要处理接收数据
-        communicate_uart_interrupt();
-        if(com_receive_flag == 1 && time_count > 0)
-        {
-            com_receive_flag = 0;
-            if(com_format == ERR)
-            {
-                for(i = 4; i > 0; i--)
-                    image_error[i] = image_error[i-1];
-                image_error[0] = Byte2Float(com_receive_data);
-                if(myfabs(image_error[0] - image_error[1]) > 10)
-                    image_error[0] = faverage(image_error, 5);
-            }
-            if(com_format == BUZ)
-            {
-                flag.buzz = com_receive_data[0];
-            }
-        }
-    }
-    if(UART3->S1 & UART_S1_TDRE_MASK )                                    //发送数据寄存器空
-    {
-        //用户需要处理发送数据
-
-    }
-}*/
 
 /*
 void PORTE_IRQHandler(void)
