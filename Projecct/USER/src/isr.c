@@ -24,7 +24,7 @@
 
 uint16 set_time = 12;
 uint32 time_count = 0;
-uint32 swich_time = 0;
+uint32 swich_time = 0, swich_time2 = 0;
 uint8 obstacle_cnt = 0;
 uint8 broken_road_cnt = 0;
 uint8 flag_broken_road_cnt = 0;
@@ -35,10 +35,9 @@ void PIT0_IRQHandler(void)
     //uint8 buf[2];
     //uint16 distance = 1500;
     //pit_time_start(pit2);
-    static uint8 cnt=0, br_cnt = 0;//,i, barrier_cnt = 0;
+    static uint8 cnt=0;//,i, barrier_cnt = 0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
     time_count++;
-    CounterDecrease();
     if(time_count>500*set_time && flag.mode != MODE_DEBUG)
     {
         flag.lost = 1;
@@ -50,28 +49,6 @@ void PIT0_IRQHandler(void)
     dir_out = DirectionControl();
     motor_out(angle_out, speed_out, dir_out);
     buzzer_control();
-
-#ifdef _SWICH_
-    if(flag.broken_road == 1 && flag.mode_switch == 0 && time_count - swich_time > 500*3)
-    {
-        flag.mode_switch = 1;
-        swich_time = time_count;
-        if(Balance_mode == 0)
-            Balance_mode = 1;
-    }
-    if(flag.mode_switch == 1 && Balance_mode == 1)
-    {
-        br_cnt++;
-        if(br_cnt > 250)
-        {
-            flag.mode_switch = 0;
-            br_cnt = 0;
-            Balance_mode = 0;
-        }
-    }
-    else
-        flag.mode_switch = 0;
-#endif
 
     if(cnt%10 == 0)
     {
@@ -106,13 +83,13 @@ void DataScope_send(void)
     float t;
     t = time_count/2;
 
+    Float2Byte(&ftestVal[0], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[1], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[2], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[3], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[4], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[5], &debug_buff[i]);   i+=4;
     Float2Byte(&ftestVal[6], &debug_buff[i]);   i+=4;
-    Float2Byte(&ftestVal[0], &debug_buff[i]);   i+=4;
     Float2Byte(&t, &debug_buff[i]);             i+=4;
 
     vcan_sendware(debug_buff, i);
@@ -121,7 +98,7 @@ void DataScope_send(void)
 
 void UART5_RX_TX_IRQHandler(void)
 {
-    //uint8 i;
+    static uint8 br_cnt = 0;
     if(UART5->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
     {
         //用户需要处理接收数据
@@ -129,8 +106,9 @@ void UART5_RX_TX_IRQHandler(void)
         if(com_receive_flag == 1 && time_count > 0)
         {
             com_receive_flag = 0;
+            flag.broken_road_last = flag.broken_road;
             obstacle_cnt = (uint8)(com_receive_data[0] * 0.8f + obstacle_cnt * 0.2f);
-            broken_road_cnt = (uint8)(com_receive_data[1] * 0.6f + broken_road_cnt * 0.4f);
+            broken_road_cnt = (uint8)(com_receive_data[1] * 0.7f + broken_road_cnt * 0.3f);
             if(broken_road_cnt > 180 && flag_broken_road_cnt < 30)
                 flag_broken_road_cnt++;
             else if(flag_broken_road_cnt > 3 && broken_road_cnt < 100)
@@ -141,6 +119,32 @@ void UART5_RX_TX_IRQHandler(void)
                 flag.broken_road = 1;
             else
                 flag.broken_road = 0;
+            #ifdef _SWICH_
+            if(flag.broken_road == 1 && flag.broken_road_last == 0
+               && (time_count - swich_time > 500*3 || (swich_time == 0 && time_count > 500))
+               && flag.obstacle == 0
+               && flag.mode != MODE_DEBUG)
+            {
+                swich_time = time_count;
+                if(Balance_mode == 0)
+                    Balance_mode = 1;
+                else
+                    flag.mode_switch = 1;
+            }
+            if(flag.mode_switch == 1)
+            {
+                br_cnt++;
+                if(br_cnt > 15)
+                {
+                    br_cnt = 0;
+                    flag.mode_switch = 0;
+                    Balance_mode = 0;
+                    swich_time2 = time_count;
+                }
+            }
+            //if(flag.mode_switch == 1)
+                //flag.buzz = 5;///////////
+            #endif
         }
     }
     if(UART5->S1 & UART_S1_TDRE_MASK )                                    //发送数据寄存器空

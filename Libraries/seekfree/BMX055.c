@@ -91,8 +91,8 @@ void BMX055_DataRead(BMX055Data_t *Q, uint8 readMAG)
         simiic_read_buf(IIC_BMX055_MAG_ADR, BMX055_MAG_XDATALSB, IIC, datatemp, 6);
         MagX = (int16)((datatemp[1] << 8) | datatemp[0]) >> 3;
         MagY = (int16)((datatemp[3] << 8) | datatemp[2]) >> 3;
-        MagZ = (int16)((datatemp[5] << 8) | datatemp[4]) >> 3;//>>1
-        Q->Mag = (uint16)(myabs(MagX) + myabs(MagY) + myabs(MagZ));
+        MagZ = (int16)((datatemp[5] << 8) | datatemp[4]) >> 3;
+        Q->Mag = (uint16)((myabs(MagX) + myabs(MagY) + myabs(MagZ))/3);
     }
 }
 

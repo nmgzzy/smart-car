@@ -31,6 +31,7 @@ typedef struct{
     uint8 En_spd;
     uint8 En_dir;
     uint8 broken_road;
+    uint8 broken_road_last;
     uint8 circle;
     uint8 mode_switch;
 }Flag_t;

@@ -23,6 +23,9 @@ int BalanceControl(void)
         BMX055_DataRead(&Q_raw, 0);
     //else
         //BMX055_DataRead(&Q_raw, 1);
+    //正常1500-1800
+    //有磁铁Mag<1400||Mag>1900 变化率很大
+    //ftestVal[2] = Q_raw.Mag;//////////////////////////////
 
     Gyro.Xdata = (Q_raw.GyroX) * 0.030517578f;// - GyroOffset.Xdata   //  1000/32768
     Gyro.Ydata = (Q_raw.GyroY) * 0.030517578f;// - GyroOffset.Ydata
@@ -66,7 +69,6 @@ int BalanceControl(void)
     else offset = (uint8)((camera_angle+31)*3.848f);
     if(Balance_mode == 1)
         offset = offset | 0x80;
-    //itestVal[0] = offset;   /////////////////////////
 
     if(cnt%5==0) uart_putchar(COM_UART, offset);
 
@@ -93,10 +95,9 @@ int BalanceControl(void)
         pid_angle[Balance_mode].output = -pid_angle[Balance_mode].p * pid_angle[Balance_mode].error + t;
     }
     angle_out = (int)pid_angle[Balance_mode].output;
-
     if(flag.En_std == 0)
         angle_out = 0;
-
+    ftestVal[0] = angle_out;////////////////////
     return angle_out;
 }
 
@@ -107,10 +108,10 @@ int BalanceControl(void)
 //----------------方向控制---------------------
 uint16 ad_data_now[NUM_OF_AD] = {0};
 
-float k_hv[2] = {8, 8};//横竖电感差比例
+float k_hv[2] = {7.5, 7};//横竖电感差比例
 float k_x[2] = {1, 1};//横竖电感差比例
-float k_hv_cin[2] = {4, 4};//进环横竖电感差比例
-float k_hv_cout[2] = {4, 4};//出环横竖电感差比例
+float k_hv_cin[2] = {3, 3.5};//进环横竖电感差比例
+float k_hv_cout[2] = {6, 6};//出环横竖电感差比例
 float k_md[2] = {0.3, 0.3};//中间电感比例
 float k_adc = 1.0f;
 //float k_ke[2] = {10.0f, 10.0f};
@@ -159,7 +160,7 @@ void ADC_get(void)
 }
 
 float k_circle[5] = {1,1,1,1,1};//入环偏差系数
-uint16 circle_offset[5] = {20,20,20,20,20};
+uint16 circle_offset[5] = {200,300,200,200,200};
 uint8 cl_num = 3;
 uint16 cl_out_delay = 400, cl_time = 40;//环参数
 int16 circle_time_count[5] = {0};
@@ -182,7 +183,7 @@ float ErrorCalculate(uint8 mode)
     difX = ad_data_now[LX]-ad_data_now[RX];
     sumH = ad_data_now[LH]+ad_data_now[RH];
     sumV = ad_data_now[LV]+ad_data_now[RV];
-    sumX = ad_data_now[LX]+ad_data_now[RX];
+    sumX = ad_data_now[LX]+ad_data_now[RX]+1;
     sumHM = sumH + ad_data_now[MD] + 1;
     sumHM2 = (uint16)(sumH + k_md[mode]*ad_data_now[MD] + 1);
     sumHM3 = (uint16)(0.7f*sumH + 0.2f*sumX + (k_md[mode]+0.1f)*ad_data_now[MD] + 1);
@@ -190,21 +191,30 @@ float ErrorCalculate(uint8 mode)
 
     error1 = 10 * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV + k_x[mode]*difX)/sumHM2;
     error_out = error1;
+
+    if(sumX > 1500 && myfabs((float)difX/sumX) < 0.5)
+    {
+        error1 = 10 * (9*difH + difV + k_x[mode]*difX)/sumHM2;
+        error_out = error1;
+    }
     //errorH = k_ke[mode] * difH/sumH;
     //errorV = k_ke[mode] * difV/sumV;
     //errorVH = k_ke[mode] * difV/sumH;
 
-    ftestVal[1] = difH;             /////////////////////////
-    ftestVal[2] = difV;             ///////////////////////
-    ftestVal[3] = difX;            /////////////////////////
-    ftestVal[4] = sumHM2-2000;    ///////////////////////
-    ftestVal[5] = sumV;              /////////////////////////
-    ftestVal[6] = ad_data_now[MD];             ///////////////////////
-
+    /*ftestVal[0] = myabs(difH);             /////////////////////////
+    ftestVal[1] = myabs(difV);             ///////////////////////
+    ftestVal[2] = myabs(difX);            /////////////////////////
+    ftestVal[3] = sumHM;    ///////////////////////
+    ftestVal[4] = sumV;              /////////////////////////
+    ftestVal[5] = ad_data_now[MD];   ///////////////////////
+    ftestVal[6] = 500*flag.circle;   ///////////////////////
+*/
     if(Balance_mode == 0)
     {
         //--------------检环-------------------
-        if(time_count>1000 && sumHM > 3000 && ad_data_now[MD] > 700 && flag.circle <= 1)
+        if(time_count>1000 && sumHM > -70*CarAttitude.Pitch+2820 && ad_data_now[MD] > -57*CarAttitude.Pitch+636//3500  1200
+           && flag.circle <= 1 && !flag.obstacle && !flag.broken_road)
+            //左中右和很大  中间很大(保证车在中间)
         {
             flag.circle = 1;
             for(uint8 i=4; i>0; i--)
@@ -212,11 +222,12 @@ float ErrorCalculate(uint8 mode)
             difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
             if((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 600)
             {
+                //外八电感之差变号  外八电感之差较大
                 flag.circle = 2;
                 yaw_integ = 0;
                 crcl_cnt++;
                 if(crcl_cnt >= cl_num) crcl_cnt = 0;
-                //flag.buzz = 1;
+                flag.buzz = 1;/////////////////////////////////////
                 circle_time_count[1] = 0;
             }
         }
@@ -229,8 +240,9 @@ float ErrorCalculate(uint8 mode)
                 error_out = error2;
             if((yaw_integ > 330 || yaw_integ < -330) && sumHM > 4500 && difX < 500)
             {
+                //陀螺仪积分  左中右较大  外八之差较小
                 flag.circle = 3;
-                //flag.buzz = 3;
+                flag.buzz = 3;///////////////////////////////////
                 circle_time_count[1] = 0;
             }
 
@@ -251,8 +263,9 @@ float ErrorCalculate(uint8 mode)
             {
                 circle_time_count[0] = 0;
                 flag.circle = 0;
-                //flag.buzz = 2;
+                flag.buzz = 2;////////////////////////////////
             }
+            //flag.buzz = 4;////////////////////////////
         }
         else
             circle_time_count[0] = 0;
@@ -261,7 +274,9 @@ float ErrorCalculate(uint8 mode)
     else if(Balance_mode == 1)
     {
         //--------------检环-------------------
-        if(time_count>1000 && sumHM > 5700 && ad_data_now[MD] > 2200 && flag.circle <= 1)
+        if(time_count>1000 && sumHM >5500 && ad_data_now[MD] > 2200
+           && flag.circle <= 1 && !flag.obstacle && !flag.broken_road)
+            //左中右和很大，中间很大
         {
             flag.circle = 1;
             for(uint8 i=4; i>0; i--)
@@ -273,7 +288,7 @@ float ErrorCalculate(uint8 mode)
                 yaw_integ = 0;
                 crcl_cnt++;
                 if(crcl_cnt >= cl_num) crcl_cnt = 0;
-                //flag.buzz = 1;
+                flag.buzz = 1;///////////////////////////
                 circle_time_count[1] = 0;
             }
         }
@@ -288,7 +303,7 @@ float ErrorCalculate(uint8 mode)
             {
                 flag.circle = 3;
                 circle_time_count[1] = 0;
-                //flag.buzz = 3;
+                flag.buzz = 3;/////////////////////////////
             }
         }
         else if(flag.circle == 3)
@@ -308,29 +323,29 @@ float ErrorCalculate(uint8 mode)
             {
                 circle_time_count[0] = 0;
                 flag.circle = 0;
-                //flag.buzz = 2;
+                flag.buzz = 2;////////////////////////////
             }
         }
         else
             circle_time_count[0] = 0;
         //--------------检环结束------------------
     }
-    ftestVal[0] = error_out;    ///////////////////////////
+    //ftestVal[0] = error_out;    ///////////////////////////
     return error_out;
 }
-
+/*
 
 void CounterDecrease(void)
 {
 
 }
-
-uint16 barrier_time = 0;
-uint16 barrier_turn_t[2] = {70,80};
-uint16 barrier_turn_k[2] = {400,360};
-uint16 barrier_delay[2]  = {95,110};
-uint16 barrier_delay_out[2] = {90,80};
-int8 barrier_turn_dir = -1;
+*/
+uint16 obstacle_time = 0;
+uint16 obstacle_turn_t[2] = {70,80};
+uint16 obstacle_turn_k[2] = {400,360};
+uint16 obstacle_delay[2]  = {95,120};
+uint16 obstacle_delay_out[2] = {90,60};
+int8 obstacle_turn_dir = -1;
 uint16 bt[2][8];
 
 int DirectionControl(void)
@@ -339,28 +354,34 @@ int DirectionControl(void)
     static int dir_out_last = 0;
     float E_error = 0;
     float error_offset = 0;
+    float speed_rate = 1;
+    float speed_k = 1;
     E_error = ErrorCalculate(Balance_mode);
     if(time_count == 1)
     {
-        bt[0][0] = 0;                               bt[1][0] = 0;
-        bt[0][1] = barrier_turn_t[0];               bt[1][1] = barrier_turn_t[1];
-        bt[0][2] = bt[0][1] + barrier_delay[0];     bt[1][2] = bt[1][1] + barrier_delay[1];
-        bt[0][3] = bt[0][2] + barrier_turn_t[0];    bt[1][3] = bt[1][2] + barrier_turn_t[1];
-        bt[0][4] = bt[0][3] + barrier_delay_out[0]; bt[1][4] = bt[1][3] + barrier_delay_out[1];
-        bt[0][5] = bt[0][4] + barrier_turn_t[0];    bt[1][5] = bt[1][4] + barrier_turn_t[1];
-        bt[0][6] = bt[0][5] + barrier_delay[0];     bt[1][6] = bt[1][5] + barrier_delay[1];
-        bt[0][7] = bt[0][6] + barrier_turn_t[0];    bt[1][7] = bt[1][6] + barrier_turn_t[1];
+        bt[0][0] = 0;                                bt[1][0] = 0;
+        bt[0][1] = obstacle_turn_t[0];               bt[1][1] = obstacle_turn_t[1];
+        bt[0][2] = bt[0][1] + obstacle_delay[0];     bt[1][2] = bt[1][1] + obstacle_delay[1];
+        bt[0][3] = bt[0][2] + obstacle_turn_t[0];    bt[1][3] = bt[1][2] + obstacle_turn_t[1];
+        bt[0][4] = bt[0][3] + obstacle_delay_out[0]; bt[1][4] = bt[1][3] + obstacle_delay_out[1];
+        bt[0][5] = bt[0][4] + obstacle_turn_t[0];    bt[1][5] = bt[1][4] + obstacle_turn_t[1];
+        bt[0][6] = bt[0][5] + obstacle_delay[0];     bt[1][6] = bt[1][5] + obstacle_delay[1];
+        bt[0][7] = bt[0][6] + obstacle_turn_t[0];    bt[1][7] = bt[1][6] + obstacle_turn_t[1];
     }
     if(flag.obstacle)
     {
-        barrier_time++;
-        if(barrier_time > bt[Balance_mode][0] && barrier_time < bt[Balance_mode][1] || barrier_time > bt[Balance_mode][6] && barrier_time < bt[Balance_mode][7])
-            error_offset =  barrier_turn_dir * barrier_turn_k[Balance_mode];
-        else if(barrier_time > bt[Balance_mode][2] && barrier_time < bt[Balance_mode][3] || barrier_time > bt[Balance_mode][4] && barrier_time < bt[Balance_mode][5])
-            error_offset = -barrier_turn_dir * barrier_turn_k[Balance_mode];
+        speed_rate = car_speed_now / target_speed[Balance_mode];
+        if(speed_rate > 1.2f) speed_rate = 1.2f;
+        else if(speed_rate < 0.6f) speed_rate = 0.6f;
+        speed_k = -2*speed_rate/3 + 1.7;
+        obstacle_time++;
+        if(obstacle_time > bt[Balance_mode][0] && obstacle_time < bt[Balance_mode][1] || obstacle_time > bt[Balance_mode][6] && obstacle_time < bt[Balance_mode][7])
+            error_offset =  obstacle_turn_dir * obstacle_turn_k[Balance_mode] * speed_k;
+        else if(obstacle_time > bt[Balance_mode][2] && obstacle_time < bt[Balance_mode][3] || obstacle_time > bt[Balance_mode][4] && obstacle_time < bt[Balance_mode][5])
+            error_offset = -obstacle_turn_dir * obstacle_turn_k[Balance_mode] * speed_k;
         else
             error_offset = 0;
-        if(barrier_time > bt[Balance_mode][7])
+        if(obstacle_time > bt[Balance_mode][7])
         {
             flag.obstacle = 0;
         }
@@ -373,7 +394,7 @@ int DirectionControl(void)
     }
     else
     {
-        barrier_time=0;
+        obstacle_time=0;
     //方向pid--------------------
         //偏差外环---------
         pid_dir[Balance_mode].error = E_error;
@@ -418,8 +439,8 @@ int DirectionControl(void)
 
 
 //---------------速度控制-------------------------
-int16 target_speed[2] = {200, 200}, target_speed_max[2] = {200, 200};
-uint16 spd_acc = 15;
+int16 target_speed[2] = {250, 230}, target_speed_max[2] = {250, 230};
+uint16 spd_acc = 2;
 float speed_k_limit = 1, car_speed_now = 0;
 double path_length = 0;
 
@@ -432,6 +453,7 @@ int SpeedControl(void)
     static uint8    speed_cnt=0,spd_error = 0;
     static float    speed_out_old = 0, speed_out_pre = 0, speed_ave_out = 0;
     float SpeedRate = 1;
+    uint8 spd_en = 1;
     speed_cnt++;
     left_spd_sum += Speed_Get('L');
     right_spd_sum += Speed_Get('R');
@@ -481,29 +503,40 @@ int SpeedControl(void)
             if(pid_dir[Balance_mode].p>pid_dir_pset[Balance_mode]*1.2f)   pid_dir[Balance_mode].p=pid_dir_pset[Balance_mode]*1.2f;      //最大
         }
     }
+    /*if(flag.mode_switch == 1)
+        target_speed[1] = 0;
+    else
+        target_speed[1] = target_speed_max[1];*/
+
+    if(flag.mode_switch == 1)//||(time_count - swich_time2 < 500 && swich_time2 != 0))
+        spd_en = 0;
+    else
+        spd_en = 1;
+
     if(Balance_mode == 0)//直立
     {
         if(speed_cnt >= 50)//100ms
         {
-            //OLED_Print_int16(0, 0, car_speed_now, 0, 1);
             //速度输出pid
             pid_speed[Balance_mode].preError = pid_speed[Balance_mode].error;
             pid_speed[Balance_mode].error = target_speed[Balance_mode] - car_speed_now;
             pid_speed[Balance_mode].deriv = pid_speed[Balance_mode].error - pid_speed[Balance_mode].preError;
-            pid_speed[Balance_mode].integ += pid_speed[Balance_mode].error * pid_speed[Balance_mode].i;
-            //积分限幅
-            pid_speed[Balance_mode].integ = flimit(pid_speed[Balance_mode].integ, (int16)(pid_speed[Balance_mode].intlimit * speed_k_limit));
-            if(myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit)
+
+            if(myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit || time_count < 500)
                 pid_speed[Balance_mode].output=pid_speed[Balance_mode].p*pid_speed[Balance_mode].error-pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv;
             else
+            {
+                pid_speed[Balance_mode].integ += pid_speed[Balance_mode].error * pid_speed[Balance_mode].i*0.1f;
+                pid_speed[Balance_mode].integ = flimit(pid_speed[Balance_mode].integ, (int16)(pid_speed[Balance_mode].intlimit * speed_k_limit));
                 pid_speed[Balance_mode].output=pid_speed[Balance_mode].p*pid_speed[Balance_mode].error-pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv+pid_speed[Balance_mode].integ;
-            speed_ave_out = (pid_speed[Balance_mode].output-speed_out_old)/50.0f;
+            }
+                speed_ave_out = (pid_speed[Balance_mode].output-speed_out_old)/50.0f;
             speed_ave_out = flimit(speed_ave_out, 20);
             //---------------------------
             speed_out_old=speed_out;
         }
         speed_out += speed_ave_out;
-        speed_out = flimit_ab(speed_out, -1000, (uint16)(3000*speed_k_limit));
+        speed_out = flimit_ab(speed_out, -300, (uint16)(2000*speed_k_limit));
     }
     else if(Balance_mode == 1)//三轮
     {
@@ -522,28 +555,36 @@ int SpeedControl(void)
             pid_speed[Balance_mode].p = pid_spd_set[0];
             pid_speed[Balance_mode].i = pid_spd_set[1];
         }
-        if(flag.circle > 0)
-            target_speed[1] = 0.8*target_speed_max[1];
+        /*if(flag.circle > 0)
+            target_speed[1] = (int16)(0.8*target_speed_max[1]);
         else
-            target_speed[1] = target_speed_max[1];
+            target_speed[1] = target_speed_max[1];*/
         //速度输出pid
         pid_speed[Balance_mode].preError = pid_speed[Balance_mode].error;
-        pid_speed[Balance_mode].error = target_speed[Balance_mode] - 0.3f*pid_dir[Balance_mode].error - pid_dir[Balance_mode].deriv - car_speed_now;
+        pid_speed[Balance_mode].error = target_speed[Balance_mode] - 0.1f*pid_dir[Balance_mode].error - 0.5f*pid_dir[Balance_mode].deriv - car_speed_now;
         pid_speed[Balance_mode].deriv = pid_speed[Balance_mode].error - pid_speed[Balance_mode].preError;
-        pid_speed[Balance_mode].integ += pid_speed[Balance_mode].error * pid_speed[Balance_mode].i * 0.1f;
-        //积分限幅
-        pid_speed[Balance_mode].integ = flimit(pid_speed[Balance_mode].integ, (int16)(pid_speed[Balance_mode].intlimit * speed_k_limit));
-        if(myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit)
-            pid_speed[Balance_mode].output = target_speed[Balance_mode] + 0.1f*pid_speed[Balance_mode].p*pid_speed[Balance_mode].error+pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv;
+        if(myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit && time_count < 500)
+            pid_speed[Balance_mode].output = target_speed[Balance_mode]
+                +0.1f*pid_speed[Balance_mode].p*pid_speed[Balance_mode].error
+                    +pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv;
         else
-            pid_speed[Balance_mode].output = target_speed[Balance_mode] + 0.1f*pid_speed[Balance_mode].p*pid_speed[Balance_mode].error+pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv+pid_speed[Balance_mode].integ;
+        {
+            pid_speed[Balance_mode].integ += pid_speed[Balance_mode].error * pid_speed[Balance_mode].i*0.01f;
+            pid_speed[Balance_mode].integ = flimit(pid_speed[Balance_mode].integ, (int16)(pid_speed[Balance_mode].intlimit));
+            pid_speed[Balance_mode].output = target_speed[Balance_mode]
+                +0.1f*pid_speed[Balance_mode].p*pid_speed[Balance_mode].error
+                    +pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv
+                        +pid_speed[Balance_mode].integ;
+        }
         //---------------------------
         speed_out = pid_speed[Balance_mode].output;
         if(speed_out - speed_out_pre > spd_acc)
             speed_out = speed_out_pre + spd_acc;
     }
 
-    if(flag.En_spd == 0)       //直立模式或调试模式不输出速度
+    ftestVal[3] = speed_out;/////////////////////////////////////
+
+    if(flag.En_spd == 0 || spd_en == 0)       //直立模式或调试模式不输出速度
     {
         speed_out = 0;
     }
@@ -553,6 +594,9 @@ int SpeedControl(void)
     }
     speed_out = 0.5f*speed_out_pre + 0.5f*speed_out;//低通滤波
     speed_out_pre = speed_out;
+    ftestVal[1] = car_speed_now;/////////////////////////////////////
+    ftestVal[2] = target_speed[Balance_mode];/////////////////////////////////////
+    ftestVal[4] = pid_speed[Balance_mode].integ;/////////////////////////////////////
     return (int)speed_out;
 }
 //-----------------速度控制-以上-----------------------------

@@ -51,10 +51,10 @@ void data_read(uint8 n)
         k_adc     = parameter[i++] / 1000.0f;
         k_x[0]    = parameter[i++] / 100.0f;
         k_x[1]    = parameter[i++] / 100.0f;
-        barrier_turn_t[0]     = parameter[i++];
-        barrier_turn_k[0]     = parameter[i++];
-        barrier_delay_out[0]  = parameter[i++];
-        barrier_turn_dir      = parameter[i++];
+        obstacle_turn_t[0]     = parameter[i++];
+        obstacle_turn_k[0]     = parameter[i++];
+        obstacle_delay_out[0]  = parameter[i++];
+        obstacle_turn_dir      = parameter[i++];
         //40
         flag.En_std      = parameter[i++];
         flag.En_spd      = parameter[i++];
@@ -78,11 +78,11 @@ void data_read(uint8 n)
         k_hv_cout[0]     = parameter[i++]/100.0f;
         //60
         k_hv_cout[1]     = parameter[i++]/100.0f;
-        barrier_delay[0]      = parameter[i++];
-        barrier_delay[1]      = parameter[i++];
-        barrier_turn_t[1]     = parameter[i++];
-        barrier_turn_k[1]     = parameter[i++];
-        barrier_delay_out[1]  = parameter[i++];
+        obstacle_delay[0]      = parameter[i++];
+        obstacle_delay[1]      = parameter[i++];
+        obstacle_turn_t[1]     = parameter[i++];
+        obstacle_turn_k[1]     = parameter[i++];
+        obstacle_delay_out[1]  = parameter[i++];
 
     }
 }
@@ -93,43 +93,43 @@ void data_save(uint8 n)
     uint8 i = 0;
     int16 parameter[NUM_OF_PARAMETER] = {0};
     //把变量的数据赋给flash数组
-    parameter[i++] = (int16)(pid_angle[0].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_angle[0].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_angle[1].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_angle[1].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[0].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[0].i * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[0].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[1].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[1].i * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_speed[1].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_dir_pset[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_dir[0].d    * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_dir_pset[1] * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_dir[1].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_yaw[0].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_yaw[0].d * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_yaw[1].p * 100 + 0.1f);
-    parameter[i++] = (int16)(pid_yaw[1].d * 100 + 0.1f);
+    parameter[i++] = (int16)(pid_angle[0].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_angle[0].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_angle[1].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_angle[1].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[0].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[0].i * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[0].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[1].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[1].i * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_speed[1].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_dir_pset[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_dir[0].d    * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_dir_pset[1] * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_dir[1].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_yaw[0].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_yaw[0].d * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_yaw[1].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_yaw[1].d * 100 + 0.01f);
 
     parameter[i++] = (int16)(set_time);
-    parameter[i++] = (int16)(target_angle[0] * 10 + 0.1f);
-    parameter[i++] = (int16)(target_angle[1] * 10 + 0.1f);
+    parameter[i++] = (int16)(target_angle[0] * 10 - 0.01f);
+    parameter[i++] = (int16)(target_angle[1] * 10 - 0.01f);
     parameter[i++] = (int16)(target_speed_max[0]);
     parameter[i++] = (int16)(target_speed_max[1]);
     parameter[i++] = (int16)(Balance_mode);
     parameter[i++] = (int16)(spd_acc);
-    parameter[i++] = (int16)(k_hv[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_hv[1] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_md[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_md[1] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_adc * 1000 + 0.1f);
-    parameter[i++] = (int16)(k_x[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_x[1] * 100 + 0.1f);
-    parameter[i++] = (int16)barrier_turn_t[0];
-    parameter[i++] = (int16)barrier_turn_k[0];
-    parameter[i++] = (int16)barrier_delay_out[0];
-    parameter[i++] = (int16)barrier_turn_dir;
+    parameter[i++] = (int16)(k_hv[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_hv[1] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_md[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_md[1] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_adc * 1000 + 0.01f);
+    parameter[i++] = (int16)(k_x[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_x[1] * 100 + 0.01f);
+    parameter[i++] = (int16)obstacle_turn_t[0];
+    parameter[i++] = (int16)obstacle_turn_k[0];
+    parameter[i++] = (int16)obstacle_delay_out[0];
+    parameter[i++] = (int16)obstacle_turn_dir;
 
     parameter[i++] = (int16)flag.En_std;
     parameter[i++] = (int16)flag.En_spd;
@@ -148,30 +148,38 @@ void data_save(uint8 n)
     parameter[i++] = (int16)circle_offset[3];
     parameter[i++] = (int16)(k_circle[4]*100);
     parameter[i++] = (int16)circle_offset[4];
-    parameter[i++] = (int16)(k_hv_cin[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_hv_cin[1] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_hv_cout[0] * 100 + 0.1f);
-    parameter[i++] = (int16)(k_hv_cout[1] * 100 + 0.1f);
-    parameter[i++] = (int16)barrier_delay[0];
-    parameter[i++] = (int16)barrier_delay[1];
-    parameter[i++] = (int16)barrier_turn_t[1];
-    parameter[i++] = (int16)barrier_turn_k[1];
-    parameter[i++] = (int16)barrier_delay_out[1];
+    parameter[i++] = (int16)(k_hv_cin[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_hv_cin[1] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_hv_cout[0] * 100 + 0.01f);
+    parameter[i++] = (int16)(k_hv_cout[1] * 100 + 0.01f);
+    parameter[i++] = (int16)obstacle_delay[0];
+    parameter[i++] = (int16)obstacle_delay[1];
+    parameter[i++] = (int16)obstacle_turn_t[1];
+    parameter[i++] = (int16)obstacle_turn_k[1];
+    parameter[i++] = (int16)obstacle_delay_out[1];
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
 }
 
-
+/*
+0
+1 .
+2 _
+3 . .
+4 . . . . . .
+5 _ . _ . _ .
+6 ___________
+*/
 void buzzer_control(void)
 {
     static uint8 buzzcount=0;
-    if(flag.buzz==0)
+    if(flag.buzz == 0)
     {
         buzz_off();
         buzzcount = 0;
     }
-    else if(flag.buzz==1)
+    else if(flag.buzz == 1)
     {
         buzzcount++;
         if(buzzcount<=40)
@@ -183,7 +191,7 @@ void buzzer_control(void)
             flag.buzz = 0;
         }
     }
-    else if(flag.buzz==2)
+    else if(flag.buzz == 2)
     {
         buzzcount++;
         if(buzzcount<=200)
@@ -195,7 +203,7 @@ void buzzer_control(void)
             flag.buzz = 0;
         }
     }
-    else if(flag.buzz==3)
+    else if(flag.buzz == 3)
     {
         buzzcount++;
         if(buzzcount<=50 || buzzcount>100&&buzzcount<=160)
@@ -211,6 +219,36 @@ void buzzer_control(void)
         }
     }
     else if(flag.buzz == 4)
+    {
+        buzzcount++;
+        if(buzzcount<=30 || buzzcount>60&&buzzcount<=90)
+            buzz_on();
+        else
+        {
+            buzz_off();
+            if(buzzcount>120)
+            {
+                buzzcount = 0;
+                flag.buzz = 0;
+            }
+        }
+    }
+    else if(flag.buzz == 5)
+    {
+        buzzcount++;
+        if(buzzcount<=70 || buzzcount>110&&buzzcount<=140)
+            buzz_on();
+        else
+        {
+            buzz_off();
+            if(buzzcount>180)
+            {
+                buzzcount = 0;
+                flag.buzz = 0;
+            }
+        }
+    }
+    else if(flag.buzz == 6)
     {
         buzz_on();
         buzzcount=0;

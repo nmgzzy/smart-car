@@ -116,10 +116,10 @@ static void print_menu(uint8 page, uint8 choice)
         },
         //page8
         {
-            "bar_t2",
-            "bar_k2",
-            "bar_dly_o2",
-            "bar_dir",
+            "ob_t2",
+            "ob_k2",
+            "ob_dly_o2",
+            "obdir +L-R",
             "",
             "",
             "cl_num",
@@ -155,14 +155,14 @@ static void print_menu(uint8 page, uint8 choice)
             "kHcin 3",
             "kHcout2",
             "kHcout 3",
-            "bar_dly2",
-            "bar_dly 3"
+            "ob_dly2",
+            "ob_dly 3"
         },
         //page12
         {
-            "bar_t 3",
-            "bar_k 3",
-            "bar_dly_o 3",
+            "ob_t 3",
+            "ob_k 3",
+            "ob_dly_o 3",
             "",
             "",
             "Par1",
@@ -172,7 +172,7 @@ static void print_menu(uint8 page, uint8 choice)
     };
     static uint8 last_page = 0;
     uint8 i;
-    float error2, error3;
+    //float error2, error3;
     if(last_page != page)
     {
         OLED_Fill(0);
@@ -365,9 +365,9 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 11)    adj_f(&pid_angle[1].p, 1);
     else if(flag_parameters == 12)    adj_f(&pid_angle[1].d, 0.1);
     else if(flag_parameters == 13)    adj_f(&pid_speed[0].p, 0.2);
-    else if(flag_parameters == 14)    adj_f(&pid_speed[0].i, 0.01);
-    else if(flag_parameters == 15)    adj_f(&pid_speed[1].p, 1);
-    else if(flag_parameters == 16)    adj_f(&pid_speed[1].i, 0.01);
+    else if(flag_parameters == 14)    adj_f(&pid_speed[0].i, 0.1);
+    else if(flag_parameters == 15)    adj_f(&pid_speed[1].p, 0.5);
+    else if(flag_parameters == 16)    adj_f(&pid_speed[1].i, 0.1);
     ////////////////////////////
     else if(flag_parameters == 17)    adj_f(&pid_dir_pset[0], 0.5);
     else if(flag_parameters == 18)    adj_f(&pid_dir[0].d, 0.5);
@@ -379,7 +379,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 24)    adj_f(&pid_yaw[1].d, 0.1);
     ////////////////////////////
     else if(flag_parameters == 25)    adj_f(&pid_speed[0].d, 0.01);
-    else if(flag_parameters == 26)    adj_f(&pid_speed[1].d, 0.5);
+    else if(flag_parameters == 26)    adj_f(&pid_speed[1].d, 0.05);
     else if(flag_parameters == 27)    adj_f(&k_hv[0], 0.5);
     else if(flag_parameters == 28)    adj_f(&k_hv[1], 0.5);
     else if(flag_parameters == 29)    adj_f(&k_md[0], 0.05);
@@ -387,10 +387,10 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 31)    adj_f(&k_x[0], 0.1);
     else if(flag_parameters == 32)    adj_f(&k_x[1], 0.1);
     ////////////////////////////
-    else if(flag_parameters == 33)    adj_u16(&barrier_turn_t[0], 5);
-    else if(flag_parameters == 34)    adj_u16(&barrier_turn_k[0], 5);
-    else if(flag_parameters == 35)    adj_u16(&barrier_delay_out[0], 10);
-    else if(flag_parameters == 36)    adj_i8(&barrier_turn_dir, 1);
+    else if(flag_parameters == 33)    adj_u16(&obstacle_turn_t[0], 5);
+    else if(flag_parameters == 34)    adj_u16(&obstacle_turn_k[0], 5);
+    else if(flag_parameters == 35)    adj_u16(&obstacle_delay_out[0], 10);
+    else if(flag_parameters == 36)    adj_i8(&obstacle_turn_dir, 1);
     else if(flag_parameters == 37)    ;//adj_f(&k_ke[0], 0.2);
     else if(flag_parameters == 38)    ;//adj_f(&k_ke[1], 0.2);
     else if(flag_parameters == 39)    adj_u8(&cl_num, 1);
@@ -411,12 +411,12 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 52)    adj_f(&k_hv_cin[1], 0.5);
     else if(flag_parameters == 53)    adj_f(&k_hv_cout[0], 0.5);
     else if(flag_parameters == 54)    adj_f(&k_hv_cout[1], 0.5);
-    else if(flag_parameters == 55)    adj_u16(&barrier_delay[0], 5);
-    else if(flag_parameters == 56)    adj_u16(&barrier_delay[1], 5);
+    else if(flag_parameters == 55)    adj_u16(&obstacle_delay[0], 5);
+    else if(flag_parameters == 56)    adj_u16(&obstacle_delay[1], 5);
     ////////////////////////////
-    else if(flag_parameters == 57)    adj_u16(&barrier_turn_t[1], 5);
-    else if(flag_parameters == 58)    adj_u16(&barrier_turn_k[1], 5);
-    else if(flag_parameters == 59)    adj_u16(&barrier_delay_out[1], 10);
+    else if(flag_parameters == 57)    adj_u16(&obstacle_turn_t[1], 5);
+    else if(flag_parameters == 58)    adj_u16(&obstacle_turn_k[1], 5);
+    else if(flag_parameters == 59)    adj_u16(&obstacle_delay_out[1], 10);
 
     else if(flag_parameters == 60)    ;//adj_u16(&barrier_turn_t[1], 5);
     else if(flag_parameters == 61)    ;//adj_u16(&barrier_turn_k[1], 5);
@@ -630,6 +630,13 @@ void displayUI(void)
         adj_parameter(flag_parameters);
     }
     uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(10);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(20);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(10);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(20);
     uart_putchar(COM_UART, 0x0F);
     OLED_Fill(0X00);
     data_save(n);
