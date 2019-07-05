@@ -5,7 +5,7 @@
 
 #define buzz_on()  gpio_set(BUZZER_PIN, 1)
 #define buzz_off() gpio_set(BUZZER_PIN, 0)
-#define NUM_OF_PARAMETER 80
+#define NUM_OF_PARAMETER 100
 
 #define CoderDelay 16
 #define CLKL0                    gpio_set(ENCODER_CLKL,0) //H2输出低电平

@@ -156,12 +156,12 @@ static void print_menu(uint8 page, uint8 choice)
             "kHcout2",
             "kHcout 3",
             "run dir",
-            ""
+            "cl size1"
         },
         //page12-param8
         {
-            "",
-            "",
+            "cl size2",
+            "cl size3",
             "",
             "",
             "",
@@ -191,7 +191,7 @@ static void print_menu(uint8 page, uint8 choice)
             OLED_P8x16Str(100,0,"NNU");
             OLED_P8x16Str(100,2,"ZZY");
             voltage = (uint16)(voltage*0.9f+adc_once(VBAT_PIN,ADC_12bit)*0.1f);
-            i = (uint8)(limit_ab(voltage - 2926, 0 , 399)/4.0f);
+            i = (uint8)(limit_ab(voltage - 2926, 0 , 329)/3.3f);
             OLED_Print_uint16(90, 7, i, 0, 0);
             break;
         case 2:         //set
@@ -423,14 +423,13 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 53)    adj_f(&k_hv_cout[0], 0.5);
     else if(flag_parameters == 54)    adj_f(&k_hv_cout[1], 0.5);
     else if(flag_parameters == 55)    adj_i8(&circle_dir, 2);
-    else if(flag_parameters == 56)    ;
+    else if(flag_parameters == 56)    adj_u8(&circle_size[0], 1);
     ////////////////////////////
-    else if(flag_parameters == 57)    ;
-    else if(flag_parameters == 58)    ;
+    else if(flag_parameters == 57)    adj_u8(&circle_size[1], 1);
+    else if(flag_parameters == 58)    adj_u8(&circle_size[2], 1);
     else if(flag_parameters == 59)    ;
-
-    else if(flag_parameters == 60)    ;//adj_u16(&barrier_turn_t[1], 5);
-    else if(flag_parameters == 61)    ;//adj_u16(&barrier_turn_k[1], 5);
+    else if(flag_parameters == 60)    ;
+    else if(flag_parameters == 61)    ;
     else if(flag_parameters == 62)    adj_f(&testPar[0], 0.1f);
     else if(flag_parameters == 63)    adj_f(&testPar[1], 1);
     else if(flag_parameters == 64)    adj_f(&testPar[2], 10);

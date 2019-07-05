@@ -63,6 +63,7 @@ extern int16 target_speed_max[2];
 extern uint16 cl_out_delay, cl_time, spd_acc;
 extern uint8 cl_num;
 extern int8 circle_dir;
+extern uint8 circle_size[5];
 extern uint16 ad_data_now[NUM_OF_AD];
 extern uint8 Balance_mode;
 

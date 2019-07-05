@@ -84,6 +84,14 @@ void data_read(uint8 n)
         obstacle_turn_k[1]     = parameter[i++];
         obstacle_delay_out[1]  = parameter[i++];
         obstacle_turn_dir[1]   = parameter[i++];
+        testPar[0]      = parameter[i++]/1000.0f;
+        testPar[1]      = parameter[i++]/100.0f;
+        testPar[2]      = parameter[i++]/10.0f;
+        circle_size[0]  = parameter[i++];
+        circle_size[1]  = parameter[i++];
+        circle_size[2]  = parameter[i++];
+        circle_size[3]  = parameter[i++];
+        circle_size[4]  = parameter[i++];
     }
 }
 
@@ -138,15 +146,15 @@ void data_save(uint8 n)
     i++;//parameter[i++] = (int16)(k_ke[1] * 100);
     parameter[i++] = (int16)cl_num;
     parameter[i++] = (int16)cl_time;
-    parameter[i++] = (int16)(k_circle[0]*100);
+    parameter[i++] = (int16)(k_circle[0]*100 + 0.01f);
     parameter[i++] = (int16)circle_offset[0];
-    parameter[i++] = (int16)(k_circle[1]*100);
+    parameter[i++] = (int16)(k_circle[1]*100 + 0.01f);
     parameter[i++] = (int16)circle_offset[1];
-    parameter[i++] = (int16)(k_circle[2]*100);
+    parameter[i++] = (int16)(k_circle[2]*100 + 0.01f);
     parameter[i++] = (int16)circle_offset[2];
-    parameter[i++] = (int16)(k_circle[3]*100);
+    parameter[i++] = (int16)(k_circle[3]*100 + 0.01f);
     parameter[i++] = (int16)circle_offset[3];
-    parameter[i++] = (int16)(k_circle[4]*100);
+    parameter[i++] = (int16)(k_circle[4]*100 + 0.01f);
     parameter[i++] = (int16)circle_offset[4];
     parameter[i++] = (int16)(k_hv_cin[0] * 100 + 0.01f);
     parameter[i++] = (int16)(k_hv_cin[1] * 100 + 0.01f);
@@ -158,6 +166,14 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_turn_k[1];
     parameter[i++] = (int16)obstacle_delay_out[1];
     parameter[i++] = (int16)obstacle_turn_dir[1];
+    parameter[i++] = (int16)(testPar[0]*1000);
+    parameter[i++] = (int16)(testPar[1]*100);
+    parameter[i++] = (int16)(testPar[2]*10);
+    parameter[i++] = (int16)(circle_size[0]);
+    parameter[i++] = (int16)(circle_size[1]);
+    parameter[i++] = (int16)(circle_size[2]);
+    parameter[i++] = (int16)(circle_size[3]);
+    parameter[i++] = (int16)(circle_size[4]);
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);

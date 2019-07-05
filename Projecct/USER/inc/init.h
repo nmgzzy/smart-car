@@ -9,7 +9,7 @@ typedef struct
     float i;
     float d;
     float error;
-    float preError;
+    float preError[3];
     float integ;
     int16 intlimit;
     int16 errlimit;
