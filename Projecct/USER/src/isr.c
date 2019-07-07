@@ -50,7 +50,7 @@ void PIT0_IRQHandler(void)
     motor_out(angle_out, speed_out, dir_out);
     buzzer_control();
 
-    if(cnt%10 == 0)
+    if(cnt%5 == 0)
     {
 #ifdef _SEND_DATA_
         DataScope_send();

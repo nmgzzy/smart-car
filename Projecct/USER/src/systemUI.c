@@ -162,12 +162,12 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "cl size2",
             "cl size3",
-            "",
-            "",
-            "",
             "Par1",
             "Par2",
-            "Par3"
+            "Par3",
+            "Par4",
+            "Par5",
+            "Par6"
         }
     };
     static uint8 last_page = 0;
@@ -427,12 +427,12 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////
     else if(flag_parameters == 57)    adj_u8(&circle_size[1], 1);
     else if(flag_parameters == 58)    adj_u8(&circle_size[2], 1);
-    else if(flag_parameters == 59)    ;
-    else if(flag_parameters == 60)    ;
-    else if(flag_parameters == 61)    ;
-    else if(flag_parameters == 62)    adj_f(&testPar[0], 0.1f);
-    else if(flag_parameters == 63)    adj_f(&testPar[1], 1);
-    else if(flag_parameters == 64)    adj_f(&testPar[2], 10);
+    else if(flag_parameters == 59)    adj_f(&testPar[0], 0.1f);
+    else if(flag_parameters == 60)    adj_f(&testPar[1], 1);
+    else if(flag_parameters == 61)    adj_f(&testPar[2], 10);
+    else if(flag_parameters == 62)    adj_f(&testPar[3], 0.1f);
+    else if(flag_parameters == 63)    adj_f(&testPar[4], 0.1f);
+    else if(flag_parameters == 64)    adj_f(&testPar[5], 0.1f);
     ////////////////////////////
 }
 

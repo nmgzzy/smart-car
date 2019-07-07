@@ -25,6 +25,10 @@
 
 #include "headfile.h"
 
+//#define max(a,b) ((a)>(b)?(a):(b))
+//#define min(a,b) ((a)<(b)?(a):(b))
+
+float minabs(float a, float b);
 float trapezoid_fun(uint32 x, uint16 up, uint16 t, uint16 down, float max);
 float signal(int data);
 float faverage(float* data, uint8 num);

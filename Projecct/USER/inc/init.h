@@ -46,6 +46,6 @@ extern PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2];
 extern float pid_dir_pset[2], pid_dire_pset[2];
 extern float pid_spd_set[2];
 extern int   itestVal[3];
-extern float ftestVal[8],testPar[3];
+extern float ftestVal[8],testPar[6];
 
 #endif

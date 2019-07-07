@@ -2,6 +2,7 @@
 
 void system_init(void);
 void test(void);
+void remote(void);
 
 uint16 distance = 0;
 
@@ -40,13 +41,13 @@ int main(void)
         if(distance > 2000)
             distance = 0;
         if(distance > 100 && distance < 900
-           && myfabs(pid_dir[Balance_mode].error) < Balance_mode?50:35
+           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 50 : 35)
            && (time_count-t > 500*5 || t == 0)
            && time_count > a*500 && time_count < b*500 //区间检测
-           && obstacle_pix > 30)
+           && obstacle_pix > (Balance_mode?25:40))
         {
             cnt++;
-            if(cnt >= 3 && (distance < 800 || obstacle_pix > Balance_mode?40:90))
+            if(cnt >= 3 && (distance < 800 || obstacle_pix > (Balance_mode?35:90)))
             {
                 flag.obstacle = 1;
                 t = time_count;
@@ -54,10 +55,9 @@ int main(void)
         }
         else if(cnt > 0)
             cnt--;
-        if(!gpio_get(SWICH_PIN) && time_count>500 && flag.lost == 0)
+        if(flag.lost == 1)
         {
-            flag.lost = 1;
-            printLog("Remote stop");
+            remote();
         }
     }
 }
@@ -91,6 +91,70 @@ void system_init(void)
     set_irq_priority(PIT0_IRQn,1);
     enable_irq(PIT0_IRQn);
     EnableInterrupts;
+}
+
+void remote(void)
+{
+    uint8 ch = 0;
+    int16 ll,rr;
+    uart_getchar(DEBUG_UART, &ch);
+    ll=0;rr=0;
+    if(ch&0x01 == 1)
+    {
+        rr-=120;
+        ll+=120;
+    }
+    if(ch>>1&0x01 == 1)
+    {
+        rr-=200;
+        ll-=200;
+    }
+    if(ch>>2&0x01 == 1)
+    {
+        rr+=120;
+        ll-=120;
+    }
+    if(ch>>3&0x01 == 1)
+    {
+        ll+=300;
+        rr+=300;
+    }
+    if(ch>>4 > 0)
+    {
+        ll=0;
+        rr=0;
+    }
+    ll=(int16)(ll*1.3f);
+    if(ll>0)
+    {
+        if(ll>500)
+            ll = 500;
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LP,(int)ll);
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LN,0);
+    }
+    else
+    {
+        ll = -ll;
+        if(ll>500)
+            ll = 500;
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LN,(int)ll);
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LP,0);
+    }
+    if(rr>0)
+    {
+        if(rr>500)
+            rr = 500;
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RP,(int)rr);
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RN,0);
+    }
+    else
+    {
+        rr = -rr;
+        if(rr>500)
+            rr = 500;
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RN,(int)rr);
+        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RP,0);
+    }
 }
 
 void testServo(void)

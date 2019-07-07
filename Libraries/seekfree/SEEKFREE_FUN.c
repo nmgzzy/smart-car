@@ -18,9 +18,13 @@
  * @date       		2016-02-25
  ********************************************************************************************************************/
 
-
-
 #include "SEEKFREE_FUN.h"
+
+
+float minabs(float a, float b)
+{
+    return myfabs(a)<myfabs(b)?a:b;
+}
 
 float trapezoid_fun(uint32 x, uint16 up, uint16 t, uint16 down, float max)
 {

@@ -19,29 +19,24 @@ void data_read(uint8 n)
         pid_speed[0].p  = parameter[i++] / 100.0f;
         pid_speed[0].i  = parameter[i++] / 100.0f;
         pid_speed[0].d  = parameter[i++] / 100.0f;
-        pid_speed[1].p  = parameter[i++] / 100.0f;
-        pid_spd_set[0] = pid_speed[1].p;
-        pid_speed[1].i  = parameter[i++] / 100.0f;
-        pid_spd_set[1] = pid_speed[1].i;
+        pid_speed[1].p  = parameter[i++] / 100.0f; pid_spd_set[0] = pid_speed[1].p;
+        pid_speed[1].i  = parameter[i++] / 100.0f; pid_spd_set[1] = pid_speed[1].i;
         pid_speed[1].d  = parameter[i++] / 100.0f;
-        pid_dir_pset[0] = parameter[i++] / 100.0f;
-        pid_dir[0].p    = pid_dir_pset[0];
+        //10
+        pid_dir_pset[0] = parameter[i++] / 100.0f; pid_dir[0].p    = pid_dir_pset[0];
         pid_dir[0].d    = parameter[i++] / 100.0f;
-        pid_dir_pset[1] = parameter[i++] / 100.0f;
-        pid_dir[1].p    = pid_dir_pset[1];
+        pid_dir_pset[1] = parameter[i++] / 100.0f; pid_dir[1].p    = pid_dir_pset[1];
         pid_dir[1].d    = parameter[i++] / 100.0f;
         pid_yaw[0].p    = parameter[i++] / 100.0f;
         pid_yaw[0].d    = parameter[i++] / 100.0f;
-        //20
         pid_yaw[1].p    = parameter[i++] / 100.0f;
         pid_yaw[1].d    = parameter[i++] / 100.0f;
         set_time            = parameter[i++];
         target_angle[0]     = parameter[i++] / 10.0f;
+        //20
         target_angle[1]     = parameter[i++] / 10.0f;
-        target_speed_max[0] = parameter[i++];
-        target_speed_max[1] = parameter[i++];
-        target_speed[0]     = target_speed_max[0];
-        target_speed[1]     = target_speed_max[1];
+        target_speed_max[0] = parameter[i++]; target_speed[0] = target_speed_max[0];
+        target_speed_max[1] = parameter[i++]; target_speed[1] = target_speed_max[1];
         Balance_mode        = parameter[i++];
         spd_acc   = parameter[i++];
         k_hv[0]   = parameter[i++] / 100.0f;
@@ -49,17 +44,18 @@ void data_read(uint8 n)
         k_md[0]   = parameter[i++] / 100.0f;
         k_md[1]   = parameter[i++] / 100.0f;
         k_adc     = parameter[i++] / 1000.0f;
+        //30
         k_x[0]    = parameter[i++] / 100.0f;
         k_x[1]    = parameter[i++] / 100.0f;
         obstacle_turn_t[0]     = parameter[i++];
         obstacle_turn_k[0]     = parameter[i++];
-        //40
         obstacle_delay_out[0]  = parameter[i++];
         obstacle_turn_dir[0]   = parameter[i++];
         flag.En_std      = parameter[i++];
         flag.En_spd      = parameter[i++];
         flag.En_dir      = parameter[i++];
         circle_dir       = parameter[i++];
+        //40
         i++;//k_ke[1]          = parameter[i++]/100.0f;
         cl_num           = parameter[i++];
         cl_time          = parameter[i++];
@@ -70,17 +66,18 @@ void data_read(uint8 n)
         k_circle[2]      = parameter[i++]/100.0f;
         circle_offset[2] = parameter[i++];
         k_circle[3]      = parameter[i++]/100.0f;
+        //50
         circle_offset[3] = parameter[i++];
         k_circle[4]      = parameter[i++]/100.0f;
         circle_offset[4] = parameter[i++];
         k_hv_cin[0]      = parameter[i++]/100.0f;
-        //60
         k_hv_cin[1]      = parameter[i++]/100.0f;
         k_hv_cout[0]     = parameter[i++]/100.0f;
         k_hv_cout[1]     = parameter[i++]/100.0f;
         obstacle_delay[0]      = parameter[i++];
         obstacle_delay[1]      = parameter[i++];
         obstacle_turn_t[1]     = parameter[i++];
+        //60
         obstacle_turn_k[1]     = parameter[i++];
         obstacle_delay_out[1]  = parameter[i++];
         obstacle_turn_dir[1]   = parameter[i++];
@@ -91,7 +88,11 @@ void data_read(uint8 n)
         circle_size[1]  = parameter[i++];
         circle_size[2]  = parameter[i++];
         circle_size[3]  = parameter[i++];
+        //70
         circle_size[4]  = parameter[i++];
+        testPar[3]      = parameter[i++]/10.0f;
+        testPar[4]      = parameter[i++]/10.0f;
+        testPar[5]      = parameter[i++]/10.0f;
     }
 }
 
@@ -119,7 +120,6 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(pid_yaw[0].d * 100 + 0.01f);
     parameter[i++] = (int16)(pid_yaw[1].p * 100 + 0.01f);
     parameter[i++] = (int16)(pid_yaw[1].d * 100 + 0.01f);
-
     parameter[i++] = (int16)(set_time);
     parameter[i++] = (int16)(target_angle[0] * 10 - 0.01f);
     parameter[i++] = (int16)(target_angle[1] * 10 - 0.01f);
@@ -138,7 +138,6 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_turn_k[0];
     parameter[i++] = (int16)obstacle_delay_out[0];
     parameter[i++] = (int16)obstacle_turn_dir[0];
-
     parameter[i++] = (int16)flag.En_std;
     parameter[i++] = (int16)flag.En_spd;
     parameter[i++] = (int16)flag.En_dir;
@@ -174,9 +173,15 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(circle_size[2]);
     parameter[i++] = (int16)(circle_size[3]);
     parameter[i++] = (int16)(circle_size[4]);
+    parameter[i++] = (int16)(testPar[3]*10);
+    parameter[i++] = (int16)(testPar[4]*10);
+    parameter[i++] = (int16)(testPar[5]*10);
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
+
+    for(i=0; i<NUM_OF_PARAMETER; i++)
+        printf("%2d:%d\n",i,parameter[i]);
 }
 
 /*

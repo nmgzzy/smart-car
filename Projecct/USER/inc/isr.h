@@ -26,11 +26,8 @@
 
 #include "headfile.h"
 
-//void CounterDecrease(void);
 void DataScope_send(void);
 void stepping_motor(int8 turn);
-//void PORTA_IRQHandler(void);
-//void PORTB_IRQHandler(void);
 void UART5_RX_TX_IRQHandler(void);
 
 extern uint16 set_time;

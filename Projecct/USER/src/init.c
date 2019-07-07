@@ -7,7 +7,7 @@ float pid_dir_pset[2], pid_dire_pset[2];;
 float pid_spd_set[2];
 int   itestVal[3] = {0};
 float ftestVal[8] = {0};
-float testPar[3] = {0};
+float testPar[6] = {0};
 
 void pidInit(void)
 {
@@ -81,7 +81,7 @@ void pidInit(void)
 //初始化旋转编码器ftm计数
 void speed_encoder_init(void)
 {
-    //////////////旋转编码器初始化       //Coder_init(); ////////////// //旋编初始化  （已检查）
+    //////////////旋转编码器初始化
     //--------------------左旋编------------------------//
     gpio_init(ENCODER_DATEL,GPI,1);//输入
     gpio_init(ENCODER_CLKL,GPO,1);//输出
