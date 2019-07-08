@@ -19,7 +19,7 @@
  ********************************************************************************************************************/
 
 #include "isr.h"
-//#define _SWICH_
+#define _SWICH_
 #define _SEND_DATA_
 
 uint16 set_time = 12;
@@ -35,7 +35,7 @@ void PIT0_IRQHandler(void)
     //uint8 buf[2];
     //uint16 distance = 1500;
     //pit_time_start(pit2);
-    static uint8 cnt=0;//,i, barrier_cnt = 0;
+    static uint8 cnt=0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
     time_count++;
     if(time_count>500*set_time && flag.mode != MODE_DEBUG)
@@ -142,8 +142,6 @@ void UART5_RX_TX_IRQHandler(void)
                     swich_time2 = time_count;
                 }
             }
-            //if(flag.mode_switch == 1)
-                //flag.buzz = 5;///////////
             #endif
         }
     }

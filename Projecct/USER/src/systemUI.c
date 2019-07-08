@@ -1,7 +1,7 @@
 ﻿//此文件包含OLED调试的相关函数
 //注意不要在中断函数中使用OLED显示
 #include "systemUI.h"
-#define PAGE_MAX 13
+#define PAGE_MAX 15
 #define WORDS_MAX 15
 #define DEFAULT_PAR 0
 
@@ -129,28 +129,28 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "Param6-ob-cl",
             "Param7-cl",
-            "Param8",
-            "",
-            "",
+            "Param8-cl",
+            "Param9",
+            "Param10",
             "",
             "",
             ""
         },
         //page10-param6
         {
-            "ob_dly2",
-            "ob_dly 3",
-            "k_c1",
-            "c_o1",
-            "k_c2",
-            "c_o2",
-            "k_c3",
-            "c_o3"
+            "ob dly2",
+            "ob dly 3",
+            "k_cin1",
+            "k_cin2",
+            "k_cin3",
+            "cin_off1",
+            "cin off2",
+            "cin off3"
         },
         //page11-param7
         {
-            "cl_num",
-            "cl_time_in",
+            "cl num",
+            "cl time in",
             "kHcin2",
             "kHcin 3",
             "kHcout2",
@@ -162,17 +162,38 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "cl size2",
             "cl size3",
-            "Par1",
-            "Par2",
-            "Par3",
-            "Par4",
-            "Par5",
-            "Par6"
+            "k_cout1",
+            "k_cout2",
+            "k_cout3",
+            "cout off1",
+            "cout off2",
+            "cout off3"
+        },
+        //page13-param9
+        {
+            "magTh",
+            "stop time",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        },
+        //page14-param10
+        {
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
         }
     };
     static uint8 last_page = 0;
     uint8 i;
-    //float error2, error3;
     if(last_page != page)
     {
         OLED_Fill(0);
@@ -202,8 +223,6 @@ static void print_menu(uint8 page, uint8 choice)
             OLED_Print_uint16(80, 6, flag.En_dir, 0, 0);
             break;
         case 3:         //show
-            //error2 = ErrorCalculate(2);
-            //error3 = ErrorCalculate(3);
             ad_data_now[LH] = adc_once(ADC_LH,ADC_12bit);
             ad_data_now[LV] = adc_once(ADC_LV,ADC_12bit);
             ad_data_now[LX] = adc_once(ADC_LX,ADC_12bit);
@@ -218,20 +237,6 @@ static void print_menu(uint8 page, uint8 choice)
             OLED_Print_uint16( 5, 2, ad_data_now[LX], 1, 0);
             OLED_Print_uint16(73, 2, ad_data_now[RX], 1, 0);
             OLED_Print_uint16(38, 3, ad_data_now[MD], 1, 0);
-            /*error2 = k_ke2*(k_hv2*(ad_data_now[LH] - ad_data_now[RH])
-                 + (1-k_hv2)*(ad_data_now[LV] - ad_data_now[RV]))
-                / (ad_data_now[LH] + ad_data_now[RH] + k_md2*ad_data_now[MD] + 1);
-            error3 = k_ke3*(k_hv3*(ad_data_now[LH] - ad_data_now[RH])
-                 + (1-k_hv3)*(ad_data_now[LV] - ad_data_now[RV]))
-                / (ad_data_now[LH] + ad_data_now[RH] + 1);*/
-
-
-            //OLED_Print_float(5, 6, error2, 3, 1);
-            //OLED_Print_float(70, 6, error3, 3, 1);
-            //OLED_Print_uint16(0, 4, ad_data_now[LH]+ad_data_now[RH], 1, 0);
-            //OLED_Print_uint16(0, 5, ad_data_now[LV]+ad_data_now[RV], 1, 0);
-            //OLED_Print_int16(64, 4, ad_data_now[LH]-ad_data_now[RH], 1, 0);
-            //OLED_Print_int16(64, 5, ad_data_now[LV]-ad_data_now[RV], 1, 0);
             uint16 distance1, distance2;
             uint8 buf[2];
             simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//两轮
@@ -410,10 +415,10 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 41)    adj_u16(&obstacle_delay[0], 5);
     else if(flag_parameters == 42)    adj_u16(&obstacle_delay[1], 5);
     else if(flag_parameters == 43)    adj_f(&k_circle[0], 0.05);
-    else if(flag_parameters == 44)    adj_i16(&circle_offset[0], 1);
-    else if(flag_parameters == 45)    adj_f(&k_circle[1], 0.05);
-    else if(flag_parameters == 46)    adj_i16(&circle_offset[1], 1);
-    else if(flag_parameters == 47)    adj_f(&k_circle[2], 0.05);
+    else if(flag_parameters == 44)    adj_f(&k_circle[1], 0.05);
+    else if(flag_parameters == 45)    adj_f(&k_circle[2], 0.05);
+    else if(flag_parameters == 46)    adj_i16(&circle_offset[0], 1);
+    else if(flag_parameters == 47)    adj_i16(&circle_offset[1], 1);
     else if(flag_parameters == 48)    adj_i16(&circle_offset[2], 1);
     ////////////////////////////
     else if(flag_parameters == 49)    adj_u8(&cl_num, 1);
@@ -427,12 +432,30 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////
     else if(flag_parameters == 57)    adj_u8(&circle_size[1], 1);
     else if(flag_parameters == 58)    adj_u8(&circle_size[2], 1);
-    else if(flag_parameters == 59)    adj_f(&testPar[0], 0.1f);
-    else if(flag_parameters == 60)    adj_f(&testPar[1], 1);
-    else if(flag_parameters == 61)    adj_f(&testPar[2], 10);
-    else if(flag_parameters == 62)    adj_f(&testPar[3], 0.1f);
-    else if(flag_parameters == 63)    adj_f(&testPar[4], 0.1f);
-    else if(flag_parameters == 64)    adj_f(&testPar[5], 0.1f);
+    else if(flag_parameters == 59)    adj_f(&k_cout[0], 0.02f);//adj_f(&testPar[0], 0.1f);
+    else if(flag_parameters == 60)    adj_f(&k_cout[1], 0.02f);
+    else if(flag_parameters == 61)    adj_f(&k_cout[2], 0.02f);
+    else if(flag_parameters == 62)    adj_f(&k_cout_offset[0], 0.02);
+    else if(flag_parameters == 63)    adj_f(&k_cout_offset[1], 0.02);
+    else if(flag_parameters == 64)    adj_f(&k_cout_offset[2], 0.02);
+    ////////////////////////////
+    else if(flag_parameters == 65)    adj_u16(&mag_threshold, 20);
+    else if(flag_parameters == 66)    adj_u8(&stop_time, 1);
+    else if(flag_parameters == 67)    ;
+    else if(flag_parameters == 68)    ;
+    else if(flag_parameters == 69)    ;
+    else if(flag_parameters == 70)    ;
+    else if(flag_parameters == 71)    ;
+    else if(flag_parameters == 72)    ;
+    ////////////////////////////
+    else if(flag_parameters == 73)    ;
+    else if(flag_parameters == 74)    ;
+    else if(flag_parameters == 75)    ;
+    else if(flag_parameters == 76)    ;
+    else if(flag_parameters == 77)    ;
+    else if(flag_parameters == 78)    ;
+    else if(flag_parameters == 79)    ;
+    else if(flag_parameters == 80)    ;
     ////////////////////////////
 }
 
@@ -465,7 +488,8 @@ void displayUI(void)
                 }
                 else if(choice == 1)
                 {
-                    if(page == 5 || page == 6 || page == 7 || page == 8 || page == 11 || page == 12 )
+                    if(page == 5 || page == 6 || page == 7 || page == 8
+                       || page == 11 || page == 12 || page == 13 || page == 14 )
                     {
                         page--;
                         choice = 8;
@@ -501,7 +525,8 @@ void displayUI(void)
                 }
                 else if(choice == 8)
                 {
-                    if(page == 4 || page == 5 || page == 6 || page == 7 || page == 10 || page == 11 )
+                    if(page == 4 || page == 5 || page == 6 || page == 7
+                       || page == 10 || page == 11 || page == 12 || page == 13)
                     {
                         page++;
                         choice = 1;
@@ -639,6 +664,16 @@ void displayUI(void)
                 flag_updown = 1;
                 flag_parameters = choice+56;
             }
+            else if(page == 13)//param9
+            {
+                flag_updown = 1;
+                flag_parameters = choice+64;
+            }
+            else if(page == 14)//param10
+            {
+                flag_updown = 1;
+                flag_parameters = choice+72;
+            }
         }
         print_menu(page, choice);
         adj_parameter(flag_parameters);
@@ -668,24 +703,14 @@ void displayDebug(void)
     OLED_P6x8Str(0, 2, (uint8*)buff);
     sprintf(buff, "Yrt:%3.1f \0", CarAttitudeRate.Yaw);
     OLED_P6x8Str(0, 3, (uint8*)buff);
-    sprintf(buff, "ob:%3d \0", obstacle_pix);
+    sprintf(buff, "ob:%3d  br:%3d \0", obstacle_pix, broken_road_cnt);
     OLED_P6x8Str(0, 4, (uint8*)buff);
-    sprintf(buff, "br:%3d \0", broken_road_cnt);
+    sprintf(buff, "spd:%3d \0", (int)car_speed_now);
     OLED_P6x8Str(0, 5, (uint8*)buff);
     sprintf(buff, "dis:%4d \0", distance);
     OLED_P6x8Str(0, 6, (uint8*)buff);
     sprintf(buff, "err:%3.1f \0", pid_dir[Balance_mode].error);
     OLED_P6x8Str(0, 7, (uint8*)buff);
-
-    //OLED_Print_float(0 , 1, CarAttitude.Yaw,3,1);
-    ///OLED_Print_float(0 , 2, CarAttitudeRate.Pitch,3,1);
-    //OLED_Print_float(0 , 3, CarAttitudeRate.Yaw,3,1);
-    //sprintf(buff, "spd:%3d \0", (int16)car_speed_now);
-    //OLED_P6x8Str(0, 7, (uint8*)buff);
-
-    //OLED_Print_float(0 , 4, ftestVal[0],3,2);
-    //OLED_Print_uint16(0 , 5, itestVal[0],1,0);
-    //OLED_Print_float(0 , 6, ftestVal[2],3,1);
 
 }
 

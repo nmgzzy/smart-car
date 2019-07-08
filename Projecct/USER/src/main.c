@@ -18,9 +18,9 @@ int main(void)
     while(1)
     {
         if(Balance_mode == 0 || flag.mode_switch == 1)
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 580);
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 555);
         else
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 250);
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 235);
         if(flag.mode != MODE_START)
         {
             if(flag.mode == MODE_DEBUG)
@@ -42,7 +42,7 @@ int main(void)
             distance = 0;
         if(distance > 100 && distance < 900
            && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 50 : 35)
-           && (time_count-t > 500*5 || t == 0)
+           && (time_count-t > 500*3 || t == 0)
            && time_count > a*500 && time_count < b*500 //区间检测
            && obstacle_pix > (Balance_mode?25:40))
         {
@@ -70,7 +70,7 @@ void system_init(void)
     ftm_pwm_init(MOTOR_FTM, MOTOR_CH_LN, 17000, 0);
     ftm_pwm_init(MOTOR_FTM, MOTOR_CH_RP, 17000, 0);
     ftm_pwm_init(MOTOR_FTM, MOTOR_CH_RN, 17000, 0);
-    ftm_pwm_init(SERVO_FTM, SERVO_CH, 330, 450); //三轮230  两轮590
+    ftm_pwm_init(SERVO_FTM, SERVO_CH, 330, 430); //三轮230  两轮590
     systick_delay_ms(4000);
     FLASH_Init();
     systick_delay_ms(10);

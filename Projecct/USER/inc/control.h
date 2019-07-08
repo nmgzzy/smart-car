@@ -52,6 +52,8 @@ void motor_out(int angle_out, int speed_out, int dir_out);
 extern float k_hv[2],k_md[2],k_adc,k_hv_cin[2],k_hv_cout[2],k_x[2];
 extern float k_circle[5];
 extern int16 circle_offset[5];
+extern float k_cout[5];
+extern float k_cout_offset[5];
 extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 obstacle_turn_t[2], obstacle_turn_k[2];
@@ -66,6 +68,8 @@ extern int8 circle_dir;
 extern uint8 circle_size[5];
 extern uint16 ad_data_now[NUM_OF_AD];
 extern uint8 Balance_mode;
+extern uint16 mag_threshold;
+extern uint8 stop_time;
 
 
 #endif

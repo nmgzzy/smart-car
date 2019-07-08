@@ -56,7 +56,7 @@ void data_read(uint8 n)
         flag.En_dir      = parameter[i++];
         circle_dir       = parameter[i++];
         //40
-        i++;//k_ke[1]          = parameter[i++]/100.0f;
+        stop_time        = parameter[i++];
         cl_num           = parameter[i++];
         cl_time          = parameter[i++];
         k_circle[0]      = parameter[i++]/100.0f;
@@ -93,6 +93,18 @@ void data_read(uint8 n)
         testPar[3]      = parameter[i++]/10.0f;
         testPar[4]      = parameter[i++]/10.0f;
         testPar[5]      = parameter[i++]/10.0f;
+        mag_threshold   = parameter[i++];
+        k_cout[0]     = parameter[i++]/100.0f;
+        k_cout[1]     = parameter[i++]/100.0f;
+        k_cout[2]     = parameter[i++]/100.0f;
+        k_cout[3]     = parameter[i++]/100.0f;
+        k_cout[4]     = parameter[i++]/100.0f;
+        //80
+        k_cout_offset[0] = parameter[i++]/100.0f;
+        k_cout_offset[1] = parameter[i++]/100.0f;
+        k_cout_offset[2] = parameter[i++]/100.0f;
+        k_cout_offset[3] = parameter[i++]/100.0f;
+        k_cout_offset[4] = parameter[i++]/100.0f;
     }
 }
 
@@ -142,7 +154,7 @@ void data_save(uint8 n)
     parameter[i++] = (int16)flag.En_spd;
     parameter[i++] = (int16)flag.En_dir;
     parameter[i++] = (int16)circle_dir;
-    i++;//parameter[i++] = (int16)(k_ke[1] * 100);
+    parameter[i++] = (int16)stop_time;
     parameter[i++] = (int16)cl_num;
     parameter[i++] = (int16)cl_time;
     parameter[i++] = (int16)(k_circle[0]*100 + 0.01f);
@@ -176,6 +188,17 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(testPar[3]*10);
     parameter[i++] = (int16)(testPar[4]*10);
     parameter[i++] = (int16)(testPar[5]*10);
+    parameter[i++] = (int16)(mag_threshold);
+    parameter[i++] = (int16)(k_cout[0]*100+0.01f);
+    parameter[i++] = (int16)(k_cout[1]*100+0.01f);
+    parameter[i++] = (int16)(k_cout[2]*100+0.01f);
+    parameter[i++] = (int16)(k_cout[3]*100+0.01f);
+    parameter[i++] = (int16)(k_cout[4]*100+0.01f);
+    parameter[i++] = (int16)(k_cout_offset[0]*100+0.01f);
+    parameter[i++] = (int16)(k_cout_offset[1]*100+0.01f);
+    parameter[i++] = (int16)(k_cout_offset[2]*100+0.01f);
+    parameter[i++] = (int16)(k_cout_offset[3]*100+0.01f);
+    parameter[i++] = (int16)(k_cout_offset[4]*100+0.01f);
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
@@ -289,7 +312,7 @@ static unsigned int encoder_get(unsigned char select)
 {
     unsigned char k;
     unsigned int dat1=0;
-    if(select=='R')
+    if(select==1)
     {
         CSnR0;
         delay_us(CoderDelay);
@@ -310,7 +333,7 @@ static unsigned int encoder_get(unsigned char select)
         }
         CSnR1;
     }
-    else if(select=='L')
+    else if(select==0)
     {
         CSnL0;
         delay_us(CoderDelay);
@@ -346,7 +369,7 @@ int16 Speed_Get(unsigned char select)
         V = V-1023;
     if(V<-512)
         V = V+1023;
-    if(select == 'R') V=-1*V;
+    if(select == 1) V=-1*V;
     return V;
 }
 
