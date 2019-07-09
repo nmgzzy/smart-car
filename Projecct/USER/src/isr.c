@@ -19,15 +19,17 @@
  ********************************************************************************************************************/
 
 #include "isr.h"
-#define _SWICH_
 #define _SEND_DATA_
 
-uint16 set_time = 12;
+uint16 set_time = 50;
 uint32 time_count = 0;
 uint32 swich_time = 0, swich_time2 = 0;
 uint8 obstacle_pix = 0;
 uint8 broken_road_cnt = 0;
 uint8 flag_broken_road_cnt = 0;
+uint8 swich = 0;
+uint8 line_cy = 0, line_width = 0;
+float img_err = 0;
 
 void PIT0_IRQHandler(void)
 {
@@ -49,6 +51,12 @@ void PIT0_IRQHandler(void)
     dir_out = DirectionControl();
     motor_out(angle_out, speed_out, dir_out);
     buzzer_control();
+
+    if(gpio_get(HALL_PIN) == 0 && time_count > stop_time*500 && flag.stop == 0)
+    {
+        flag.stop = 1;
+        printLog("Hall stop");
+    }
 
     if(cnt%5 == 0)
     {
@@ -99,6 +107,7 @@ void DataScope_send(void)
 void UART5_RX_TX_IRQHandler(void)
 {
     static uint8 br_cnt = 0;
+    uint8 t;
     if(UART5->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
     {
         //用户需要处理接收数据
@@ -109,40 +118,49 @@ void UART5_RX_TX_IRQHandler(void)
             flag.broken_road_last = flag.broken_road;
             obstacle_pix = (uint8)(com_receive_data[0] * 0.8f + obstacle_pix * 0.2f);
             broken_road_cnt = (uint8)(com_receive_data[1] * 0.7f + broken_road_cnt * 0.3f);
-            if(broken_road_cnt > 180 && flag_broken_road_cnt < 30)
+            line_cy = com_receive_data[2];
+            line_width = com_receive_data[3];
+            if(line_cy != 0 && line_width != 0)
+            {
+                t = (83-line_width<0)?0:(83-line_width)/2;
+                img_err = img_err*0.3f+((line_cy-57<0)?57-line_cy+t:57-line_cy-t)*0.7f;
+            }
+            if(broken_road_cnt > 170 && flag_broken_road_cnt < 10)
                 flag_broken_road_cnt++;
-            else if(flag_broken_road_cnt > 3 && broken_road_cnt < 100)
-                flag_broken_road_cnt-=3;
             else if(flag_broken_road_cnt > 0)
                 flag_broken_road_cnt--;
-            if(flag_broken_road_cnt > 5)
+            if(flag_broken_road_cnt > 3)
+            {
                 flag.broken_road = 1;
+                flag.buzz = 5;
+            }
             else
                 flag.broken_road = 0;
-            #ifdef _SWICH_
-            if(flag.broken_road == 1 && flag.broken_road_last == 0
-               && (time_count - swich_time > 500*3 || (swich_time == 0 && time_count > 500))
-               && flag.obstacle == 0
-               && flag.mode != MODE_DEBUG)
+            if(swich)
             {
-                swich_time = time_count;
-                if(Balance_mode == 0)
-                    Balance_mode = 1;
-                else
-                    flag.mode_switch = 1;
-            }
-            if(flag.mode_switch == 1)
-            {
-                br_cnt++;
-                if(br_cnt > 15)
+                if(flag.broken_road == 1 && flag.broken_road_last == 0
+                   && (time_count - swich_time > 500*3 || (swich_time == 0 && time_count > 500))
+                   && flag.obstacle == 0
+                   && flag.mode != MODE_DEBUG)
                 {
-                    br_cnt = 0;
-                    flag.mode_switch = 0;
-                    Balance_mode = 0;
-                    swich_time2 = time_count;
+                    swich_time = time_count;
+                    if(Balance_mode == 0)
+                        Balance_mode = 1;
+                    else
+                        flag.mode_switch = 1;
+                }
+                if(flag.mode_switch == 1)
+                {
+                    br_cnt++;
+                    if(br_cnt > 15)
+                    {
+                        br_cnt = 0;
+                        flag.mode_switch = 0;
+                        Balance_mode = 0;
+                        swich_time2 = time_count;
+                    }
                 }
             }
-            #endif
         }
     }
     if(UART5->S1 & UART_S1_TDRE_MASK )                                    //发送数据寄存器空

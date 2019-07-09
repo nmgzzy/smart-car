@@ -69,7 +69,6 @@ extern uint8 circle_size[5];
 extern uint16 ad_data_now[NUM_OF_AD];
 extern uint8 Balance_mode;
 extern uint16 mag_threshold;
-extern uint8 stop_time;
-
+extern uint8 stop_time, swich_mode, swich;
 
 #endif

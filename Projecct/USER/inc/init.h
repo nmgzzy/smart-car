@@ -42,7 +42,7 @@ void ADC_init(void);
 
 extern Flag_t flag;
 extern float camera_angle_p;
-extern PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2];
+extern PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2], pid_img[2];
 extern float pid_dir_pset[2], pid_dire_pset[2];
 extern float pid_spd_set[2];
 extern int   itestVal[3];

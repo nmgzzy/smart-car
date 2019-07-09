@@ -105,6 +105,8 @@ void data_read(uint8 n)
         k_cout_offset[2] = parameter[i++]/100.0f;
         k_cout_offset[3] = parameter[i++]/100.0f;
         k_cout_offset[4] = parameter[i++]/100.0f;
+        swich_mode       = parameter[i++];
+        swich             = parameter[i++];
     }
 }
 
@@ -199,7 +201,8 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(k_cout_offset[2]*100+0.01f);
     parameter[i++] = (int16)(k_cout_offset[3]*100+0.01f);
     parameter[i++] = (int16)(k_cout_offset[4]*100+0.01f);
-
+    parameter[i++] = (int16)(swich_mode);
+    parameter[i++] = (int16)(swich);
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
 
@@ -219,7 +222,7 @@ void data_save(uint8 n)
 void buzzer_control(void)
 {
     static uint8 buzzcount=0;
-    if(flag.buzz == 0)
+    if(flag.buzz == 0 || flag.lost == 1)
     {
         buzz_off();
         buzzcount = 0;

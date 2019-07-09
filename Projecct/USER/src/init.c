@@ -1,7 +1,7 @@
 #include "init.h"
 
 Flag_t flag;
-PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2];
+PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2], pid_img[2];
 float camera_angle_p = 0;
 float pid_dir_pset[2], pid_dire_pset[2];;
 float pid_spd_set[2];
@@ -32,9 +32,9 @@ void pidInit(void)
     pid_angle[0].d = 2.3;
 
     //速度pid
-    pid_speed[0].p = 18;
-    pid_speed[0].i = 0.1;
-    pid_speed[0].d = 0;
+    pid_speed[0].p = 16;
+    pid_speed[0].i = 0.5;
+    pid_speed[0].d = 0.01;
     pid_speed[0].intlimit = 1000;
     pid_speed[0].errlimit = (int16)(0.6f * target_speed_max[0]);
     pid_speed[0].integ = 0;
@@ -43,25 +43,29 @@ void pidInit(void)
     pid_dir_pset[0] = 10;
     pid_dir[0].p = pid_dir_pset[0];//
     pid_dir[0].i = 0;//
-    pid_dir[0].d = 5;
+    pid_dir[0].d = 3;
 
     //方向角速度pid
     pid_yaw[0].p = 2.7;
     pid_yaw[0].i = 0;//
     pid_yaw[0].d = 3.4f;
 
+    pid_img[0].p = 0;
+    pid_img[0].i = 0;//
+    pid_img[0].d = 0;
+
     //---------------三轮--------------------
     //角度pid
-    pid_angle[1].p = 30;
+    pid_angle[1].p = 19;
     pid_angle[1].i = 0;//
-    pid_angle[1].d = 1;
+    pid_angle[1].d = 11;
 
     //速度pid
     pid_speed[1].p = 20;
     pid_spd_set[0] = pid_speed[1].p;
-    pid_speed[1].i = 0.1;
+    pid_speed[1].i = 0.6;
     pid_spd_set[1] = pid_speed[1].i;
-    pid_speed[1].d = 0.1;
+    pid_speed[1].d = 1;
     pid_speed[1].intlimit = 300;
     pid_speed[1].errlimit = (int16)(0.7f * target_speed_max[1]);
     pid_speed[1].integ = 0;
@@ -76,6 +80,10 @@ void pidInit(void)
     pid_yaw[1].p = 2.7;
     pid_yaw[1].i = 0;//
     pid_yaw[1].d = 3.4f;
+
+    pid_img[1].p = 0;
+    pid_img[1].i = 0;//
+    pid_img[1].d = 0;
 }
 
 //初始化旋转编码器ftm计数

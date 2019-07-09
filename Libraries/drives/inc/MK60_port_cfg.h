@@ -167,7 +167,7 @@
 //  D   gnd
 
 #define BUZZER_PIN  E10
-#define SWICH_PIN  E11
+#define HALL_PIN  E11
 
 //??????????
 #define ADC_LH   ADC1_SE13

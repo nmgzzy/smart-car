@@ -32,7 +32,7 @@ void UART5_RX_TX_IRQHandler(void);
 
 extern uint16 set_time;
 extern uint32 time_count, swich_time2;
-extern uint8 obstacle_pix;
-extern uint8 broken_road_cnt;
+extern uint8 obstacle_pix,broken_road_cnt,line_cy,line_width;
+extern float img_err;
 
 #endif

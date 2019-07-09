@@ -173,8 +173,8 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "magTh",
             "stop time",
-            "",
-            "",
+            "swich_mode",
+            "swich",
             "",
             "",
             "",
@@ -441,8 +441,8 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////
     else if(flag_parameters == 65)    adj_u16(&mag_threshold, 20);
     else if(flag_parameters == 66)    adj_u8(&stop_time, 1);
-    else if(flag_parameters == 67)    ;
-    else if(flag_parameters == 68)    ;
+    else if(flag_parameters == 67)    adj_u8(&swich_mode, 1);
+    else if(flag_parameters == 68)    adj_u8(&swich, 1);
     else if(flag_parameters == 69)    ;
     else if(flag_parameters == 70)    ;
     else if(flag_parameters == 71)    ;
@@ -464,7 +464,8 @@ void displayUI(void)
 {
     uint8 key=0, page = 0, choice = 0, n=100;
     uint8 flag_parameters=0;    //1-target_angle 2-target_speed 3-set_time 4-K_hv
-    //uint8 i;
+    uint32 t = 0;
+    pit_time_start(pit1);
     OLED_Fill(0X00);
     gpio_init(KEY_PIN_U, GPI, 0); //down
     gpio_init(KEY_PIN_D, GPI, 0); //right
@@ -678,23 +679,27 @@ void displayUI(void)
         print_menu(page, choice);
         adj_parameter(flag_parameters);
     }
-    uart_putchar(COM_UART, 0x0F);
-    systick_delay_ms(10);
-    uart_putchar(COM_UART, 0x0F);
-    systick_delay_ms(20);
-    uart_putchar(COM_UART, 0x0F);
-    systick_delay_ms(10);
-    uart_putchar(COM_UART, 0x0F);
-    systick_delay_ms(20);
-    uart_putchar(COM_UART, 0x0F);
     OLED_Fill(0X00);
     data_save(n);
+    t=pit_get_ms(pit1);
+    if(t<6000)
+        systick_delay_ms(6000-t);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(10);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(20);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(10);
+    uart_putchar(COM_UART, 0x0F);
+    systick_delay_ms(20);
+    uart_putchar(COM_UART, 0x0F);
     systick_delay_ms(10);
 }
 
 void displayDebug(void)
 {
     int8 buff[20];
+    int8 t = 0;
     sprintf(buff, "Pch:%3.1f Mg:%d \0", CarAttitude.Pitch, Q_raw.Mag);
     OLED_P6x8Str(0, 0, (uint8*)buff);
     sprintf(buff, "Prt:%3.1f \0", CarAttitudeRate.Pitch);
@@ -705,11 +710,12 @@ void displayDebug(void)
     OLED_P6x8Str(0, 3, (uint8*)buff);
     sprintf(buff, "ob:%3d  br:%3d \0", obstacle_pix, broken_road_cnt);
     OLED_P6x8Str(0, 4, (uint8*)buff);
-    sprintf(buff, "spd:%3d \0", (int)car_speed_now);
+    sprintf(buff, "spd:%3d Wd:%d  \0", (int)car_speed_now, line_width);
     OLED_P6x8Str(0, 5, (uint8*)buff);
-    sprintf(buff, "dis:%4d \0", distance);
+    t = (83-line_width<0)?0:(83-line_width)/2;
+    sprintf(buff, "dis:%3d er:%d  \0", distance/10, -((line_cy-57<0)?line_cy-57-t:line_cy-57+t));
     OLED_P6x8Str(0, 6, (uint8*)buff);
-    sprintf(buff, "err:%3.1f \0", pid_dir[Balance_mode].error);
+    sprintf(buff, "Err:%3.1f Cy:%d  \0", pid_dir[Balance_mode].error, 57-line_cy);
     OLED_P6x8Str(0, 7, (uint8*)buff);
 
 }
