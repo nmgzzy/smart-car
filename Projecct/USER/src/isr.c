@@ -107,7 +107,7 @@ void DataScope_send(void)
 void UART5_RX_TX_IRQHandler(void)
 {
     static uint8 br_cnt = 0;
-    uint8 t;
+    float t;
     if(UART5->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
     {
         //用户需要处理接收数据
@@ -118,12 +118,23 @@ void UART5_RX_TX_IRQHandler(void)
             flag.broken_road_last = flag.broken_road;
             obstacle_pix = (uint8)(com_receive_data[0] * 0.8f + obstacle_pix * 0.2f);
             broken_road_cnt = (uint8)(com_receive_data[1] * 0.7f + broken_road_cnt * 0.3f);
-            line_cy = com_receive_data[2];
-            line_width = com_receive_data[3];
-            if(line_cy != 0 && line_width != 0)
+            if(Balance_mode)
             {
-                t = (83-line_width<0)?0:(83-line_width)/2;
-                img_err = img_err*0.3f+((line_cy-57<0)?57-line_cy+t:57-line_cy-t)*0.7f;
+                line_cy = com_receive_data[2];
+                line_width = com_receive_data[3];
+                if(line_cy != 0 && line_width != 0)
+                {
+                    t = (65-line_width<0)?0:(65-line_width)/2.0f;//83//75//65
+                    img_err = 0.3f*img_err+0.7f*((56-line_cy>0)?56.0-line_cy+t:56.0-line_cy-t);
+                    pid_img[Balance_mode].error = img_err;
+                    pid_img[Balance_mode].deriv = pid_img[Balance_mode].error - pid_img[Balance_mode].preError[0];
+                    pid_img[Balance_mode].preError[0] = pid_img[Balance_mode].error;
+                    pid_img[Balance_mode].output = pid_img[Balance_mode].p * pid_img[Balance_mode].error + pid_img[Balance_mode].d * pid_img[Balance_mode].deriv;
+                }
+                else
+                {
+                    img_err = 0;
+                }
             }
             if(broken_road_cnt > 170 && flag_broken_road_cnt < 10)
                 flag_broken_road_cnt++;

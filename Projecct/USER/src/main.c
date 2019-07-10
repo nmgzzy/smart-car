@@ -5,12 +5,12 @@ void test(void);
 void remote(void);
 
 uint16 distance = 0;
+uint16 servo_duty = 520;
 
 int main(void)
 {
     system_init();
     uint8 buf[2];
-    uint8 a = 1, b = 30;
     uint8 cnt = 0;
     flag.buzz = 1;
     uint32 t = 0;
@@ -18,7 +18,7 @@ int main(void)
     while(1)
     {
         if(Balance_mode == 0 || flag.mode_switch == 1)
-            ftm_pwm_duty(SERVO_FTM, SERVO_CH, 550);
+            ftm_pwm_duty(SERVO_FTM, SERVO_CH, servo_duty);
         else
             ftm_pwm_duty(SERVO_FTM, SERVO_CH, 235);
         if(flag.mode != MODE_START)
@@ -40,11 +40,11 @@ int main(void)
         }
         if(distance > 2000)
             distance = 0;
-        if(distance > 100 && distance < 900
+        if((distance > 100 && distance < 900 && obstacle_pix > (Balance_mode?25:40))
            && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 30 : 25)
            && (time_count-t > 500*3 || t == 0)
-           && time_count > a*500 && time_count < b*500 //区间检测
-           && obstacle_pix > (Balance_mode?25:40)
+           && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
+               || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
            && flag.obstacle < 2)
         {
             cnt++;
@@ -59,10 +59,10 @@ int main(void)
             cnt--;
         else if(cnt == 0 && flag.obstacle == 1)
             flag.obstacle = 0;
-        if(flag.lost == 1)
+        /*if(flag.lost == 1)
         {
             remote();
-        }
+        }*/
     }
 }
 

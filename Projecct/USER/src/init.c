@@ -2,12 +2,14 @@
 
 Flag_t flag;
 PID_t pid_angle[2], pid_speed[2], pid_dir[2], pid_yaw[2], pid_img[2];
+TIME_t tim;
 float camera_angle_p = 0;
-float pid_dir_pset[2], pid_dire_pset[2];;
+float pid_dir_pset[2], pid_dire_pset[2];
 float pid_spd_set[2];
 int   itestVal[3] = {0};
 float ftestVal[8] = {0};
 float testPar[6] = {0};
+
 
 void pidInit(void)
 {
@@ -25,6 +27,8 @@ void pidInit(void)
     flag.broken_road = 0;
     flag.broken_road_last = 0;
     flag.mode_switch = 0;
+    flag.slow_down = 0;
+
     //---------------直立--------------------
     //角度pid
     pid_angle[0].p = 125;
@@ -35,7 +39,7 @@ void pidInit(void)
     pid_speed[0].p = 16;
     pid_speed[0].i = 0.5;
     pid_speed[0].d = 0.01;
-    pid_speed[0].intlimit = 1000;
+    pid_speed[0].intlimit = 1200;
     pid_speed[0].errlimit = (int16)(0.6f * target_speed_max[0]);
     pid_speed[0].integ = 0;
 
@@ -81,9 +85,17 @@ void pidInit(void)
     pid_yaw[1].i = 0;//
     pid_yaw[1].d = 3.4f;
 
-    pid_img[1].p = 0;
+    pid_img[1].p = 13;
     pid_img[1].i = 0;//
-    pid_img[1].d = 0;
+    pid_img[1].d = 6;
+
+    tim.obstacle_a = 0;
+    tim.obstacle_b = 50;
+    tim.obstacle_c = 0;
+    tim.obstacle_d = 50;
+    tim.slow_a = 0;
+    tim.slow_b = 0;
+
 }
 
 //初始化旋转编码器ftm计数

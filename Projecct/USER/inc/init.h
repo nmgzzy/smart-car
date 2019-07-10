@@ -9,7 +9,7 @@ typedef struct
     float i;
     float d;
     float error;
-    float preError[3];
+    float preError[5];
     float integ;
     int16 intlimit;
     int16 errlimit;
@@ -34,7 +34,17 @@ typedef struct{
     uint8 broken_road_last;
     uint8 circle;
     uint8 mode_switch;
+    uint8 slow_down;
 }Flag_t;
+
+typedef struct{
+    uint8 obstacle_a;
+    uint8 obstacle_b;
+    uint8 obstacle_c;
+    uint8 obstacle_d;
+    uint8 slow_a;
+    uint8 slow_b;
+}TIME_t;
 
 void pidInit(void);
 void speed_encoder_init(void);
@@ -47,5 +57,7 @@ extern float pid_dir_pset[2], pid_dire_pset[2];
 extern float pid_spd_set[2];
 extern int   itestVal[3];
 extern float ftestVal[8],testPar[6];
+extern TIME_t tim;
+extern uint16 servo_duty;
 
 #endif

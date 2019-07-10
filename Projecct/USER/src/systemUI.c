@@ -1,7 +1,7 @@
 ﻿//此文件包含OLED调试的相关函数
 //注意不要在中断函数中使用OLED显示
 #include "systemUI.h"
-#define PAGE_MAX 15
+#define PAGE_MAX 18
 #define WORDS_MAX 15
 #define DEFAULT_PAR 0
 
@@ -127,14 +127,14 @@ static void print_menu(uint8 page, uint8 choice)
         },
         //page9
         {
-            "Param6-ob-cl",
+            "Param6-ob-cin",
             "Param7-cl",
-            "Param8-cl",
+            "Param8-cout",
             "Param9",
-            "Param10",
-            "",
-            "",
-            ""
+            "Param10-tim",
+            "Param11",
+            "Param12",
+            "Param13"
         },
         //page10-param6
         {
@@ -175,12 +175,45 @@ static void print_menu(uint8 page, uint8 choice)
             "stop time",
             "swich_mode",
             "swich",
+            "img.kp",
+            "img.kd",
+            "k ei",
+            "servo"
+        },
+        //page14-param10
+        {
+            "tim.ob_a",
+            "tim.ob_b",
+            "tim.ob_c",
+            "tim.ob_d",
+            "tim.slow_a",
+            "tim.slow_b",
+            "",
+            ""
+        },
+        //page15-param11
+        {
+            "",
+            "",
+            "",
+            "",
             "",
             "",
             "",
             ""
         },
-        //page14-param10
+        //page16-param12
+        {
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        },
+        //page17-param13
         {
             "",
             "",
@@ -443,19 +476,46 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 66)    adj_u8(&stop_time, 1);
     else if(flag_parameters == 67)    adj_u8(&swich_mode, 1);
     else if(flag_parameters == 68)    adj_u8(&swich, 1);
-    else if(flag_parameters == 69)    ;
-    else if(flag_parameters == 70)    ;
-    else if(flag_parameters == 71)    ;
-    else if(flag_parameters == 72)    ;
+    else if(flag_parameters == 69)    adj_f(&pid_img[1].p, 0.1);
+    else if(flag_parameters == 70)    adj_f(&pid_img[1].d, 0.1);
+    else if(flag_parameters == 71)    adj_f(&k_ei, 0.1);
+    else if(flag_parameters == 72)    adj_u16(&servo_duty, 5);
     ////////////////////////////
-    else if(flag_parameters == 73)    ;
-    else if(flag_parameters == 74)    ;
-    else if(flag_parameters == 75)    ;
-    else if(flag_parameters == 76)    ;
-    else if(flag_parameters == 77)    ;
-    else if(flag_parameters == 78)    ;
+    else if(flag_parameters == 73)    adj_u8(&tim.obstacle_a, 1);
+    else if(flag_parameters == 74)    adj_u8(&tim.obstacle_b, 1);
+    else if(flag_parameters == 75)    adj_u8(&tim.obstacle_c, 1);
+    else if(flag_parameters == 76)    adj_u8(&tim.obstacle_d, 1);
+    else if(flag_parameters == 77)    adj_u8(&tim.slow_a, 1);
+    else if(flag_parameters == 78)    adj_u8(&tim.slow_b, 1);
     else if(flag_parameters == 79)    ;
     else if(flag_parameters == 80)    ;
+    ////////////////////////////
+    else if(flag_parameters == 81)    ;
+    else if(flag_parameters == 82)    ;
+    else if(flag_parameters == 83)    ;
+    else if(flag_parameters == 84)    ;
+    else if(flag_parameters == 85)    ;
+    else if(flag_parameters == 86)    ;
+    else if(flag_parameters == 87)    ;
+    else if(flag_parameters == 88)    ;
+    ////////////////////////////
+    else if(flag_parameters == 89)    ;
+    else if(flag_parameters == 90)    ;
+    else if(flag_parameters == 91)    ;
+    else if(flag_parameters == 92)    ;
+    else if(flag_parameters == 93)    ;
+    else if(flag_parameters == 94)    ;
+    else if(flag_parameters == 95)    ;
+    else if(flag_parameters == 96)    ;
+    ////////////////////////////
+    else if(flag_parameters == 97)    ;
+    else if(flag_parameters == 98)    ;
+    else if(flag_parameters == 99)    ;
+    else if(flag_parameters == 100)   ;
+    else if(flag_parameters == 101)   ;
+    else if(flag_parameters == 102)   ;
+    else if(flag_parameters == 103)   ;
+    else if(flag_parameters == 104)   ;
     ////////////////////////////
 }
 
@@ -489,8 +549,7 @@ void displayUI(void)
                 }
                 else if(choice == 1)
                 {
-                    if(page == 5 || page == 6 || page == 7 || page == 8
-                       || page == 11 || page == 12 || page == 13 || page == 14 )
+                    if(page >= 5 && page <= 8 || page >= 11 && page <= 17 )
                     {
                         page--;
                         choice = 8;
@@ -526,8 +585,7 @@ void displayUI(void)
                 }
                 else if(choice == 8)
                 {
-                    if(page == 4 || page == 5 || page == 6 || page == 7
-                       || page == 10 || page == 11 || page == 12 || page == 13)
+                    if(page >= 4 && page <= 7 || page >= 10 && page <= 16)
                     {
                         page++;
                         choice = 1;
@@ -540,6 +598,11 @@ void displayUI(void)
                     else if(page == 1)
                     {
                         page = 9;
+                        choice = 1;
+                    }
+                    else if(page == 9)
+                    {
+                        page = 1;
                         choice = 1;
                     }
                 }
@@ -558,7 +621,11 @@ void displayUI(void)
                 flag_updown = 0;
             else
             {
-                if(page >= 2 && page <= 9)
+                if(page == 1)
+                {
+                    page = 9;
+                }
+                else if(page >= 2 && page <= 9)
                 {
                     page = 1;
                 }
@@ -625,55 +692,15 @@ void displayUI(void)
                     case 8:flag.mode = MODE_PWM_TEST; break;
                 }
             }
-            else if(page == 4)//param1
+            else if(page >= 4 && page <= 8)
             {
                 flag_updown = 1;
-                flag_parameters = choice;
+                flag_parameters = choice+(page-4)*8;
             }
-            else if(page == 5)//param2
+            else if(page >= 10 && page <= 17)
             {
                 flag_updown = 1;
-                flag_parameters = choice+8;
-            }
-            else if(page == 6)//param3
-            {
-                flag_updown = 1;
-                flag_parameters = choice+16;
-            }
-            else if(page == 7)//param4
-            {
-                flag_updown = 1;
-                flag_parameters = choice+24;
-            }
-            else if(page == 8)//param5
-            {
-                flag_updown = 1;
-                flag_parameters = choice+32;
-            }
-            else if(page == 10)//param6
-            {
-                flag_updown = 1;
-                flag_parameters = choice+40;
-            }
-            else if(page == 11)//param7
-            {
-                flag_updown = 1;
-                flag_parameters = choice+48;
-            }
-            else if(page == 12)//param8
-            {
-                flag_updown = 1;
-                flag_parameters = choice+56;
-            }
-            else if(page == 13)//param9
-            {
-                flag_updown = 1;
-                flag_parameters = choice+64;
-            }
-            else if(page == 14)//param10
-            {
-                flag_updown = 1;
-                flag_parameters = choice+72;
+                flag_parameters = choice+(page-5)*8;
             }
         }
         print_menu(page, choice);
@@ -712,10 +739,10 @@ void displayDebug(void)
     OLED_P6x8Str(0, 4, (uint8*)buff);
     sprintf(buff, "spd:%3d Wd:%d  \0", (int)car_speed_now, line_width);
     OLED_P6x8Str(0, 5, (uint8*)buff);
-    t = (83-line_width<0)?0:(83-line_width)/2;
-    sprintf(buff, "dis:%3d er:%d  \0", distance/10, -((line_cy-57<0)?line_cy-57-t:line_cy-57+t));
+    t = (65-line_width<0)?0:(65-line_width)/2;
+    sprintf(buff, "dis:%3d er:%d  \0", distance/10, -((line_cy-56<0)?line_cy-56-t:line_cy-56+t));
     OLED_P6x8Str(0, 6, (uint8*)buff);
-    sprintf(buff, "Err:%3.1f Cy:%d  \0", pid_dir[Balance_mode].error, 57-line_cy);
+    sprintf(buff, "Err:%3.1f Cy:%d  \0", pid_dir[Balance_mode].error, 56-line_cy);
     OLED_P6x8Str(0, 7, (uint8*)buff);
 
 }

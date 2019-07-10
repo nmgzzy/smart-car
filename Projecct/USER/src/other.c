@@ -106,7 +106,18 @@ void data_read(uint8 n)
         k_cout_offset[3] = parameter[i++]/100.0f;
         k_cout_offset[4] = parameter[i++]/100.0f;
         swich_mode       = parameter[i++];
-        swich             = parameter[i++];
+        swich           = parameter[i++];
+        pid_img[1].p    = parameter[i++] / 100.0f;
+        pid_img[1].d    = parameter[i++] / 100.0f;
+        k_ei            = parameter[i++] / 100.0f;
+        //90
+        servo_duty      = parameter[i++];
+        tim.obstacle_a  = parameter[i++];
+        tim.obstacle_b  = parameter[i++];
+        tim.obstacle_c  = parameter[i++];
+        tim.obstacle_d  = parameter[i++];
+        tim.slow_a      = parameter[i++];
+        tim.slow_b      = parameter[i++];
     }
 }
 
@@ -203,6 +214,17 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(k_cout_offset[4]*100+0.01f);
     parameter[i++] = (int16)(swich_mode);
     parameter[i++] = (int16)(swich);
+    parameter[i++] = (int16)(pid_img[1].p * 100 + 0.01f);
+    parameter[i++] = (int16)(pid_img[1].d * 100 + 0.01f);
+    parameter[i++] = (int16)(k_ei * 100 + 0.01f);
+    parameter[i++] = (int16)(servo_duty);
+    parameter[i++] = (int16)(tim.obstacle_a);
+    parameter[i++] = (int16)(tim.obstacle_b);
+    parameter[i++] = (int16)(tim.obstacle_c);
+    parameter[i++] = (int16)(tim.obstacle_d);
+    parameter[i++] = (int16)(tim.slow_a);
+    parameter[i++] = (int16)(tim.slow_b);
+
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
 
