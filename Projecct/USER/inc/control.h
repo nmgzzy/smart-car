@@ -4,7 +4,7 @@
 #include "headfile.h"
 
 #define PWMOUTMAX 950
-#define DIROUTMAX 500
+#define DIROUTMAX 600
 
 #define S_STEP1      0.6f
 #define S_STEP2      0.7f
@@ -58,7 +58,7 @@ extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 obstacle_turn_t[2], obstacle_turn_k[2];
 extern uint16 obstacle_delay[2], obstacle_delay_out[2];
-extern int8 obstacle_turn_dir[2];
+extern int8 obstacle_turn_dir[3];
 extern float car_speed_now, k_ei;
 extern int16 target_speed[2];
 extern int16 target_speed_max[2];

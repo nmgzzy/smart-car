@@ -41,7 +41,7 @@ int main(void)
         if(distance > 2000)
             distance = 0;
         if((distance > 100 && distance < 900 && obstacle_pix > (Balance_mode?25:40))
-           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 30 : 25)
+           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
            && (time_count-t > 500*3 || t == 0)
            && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
                || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
@@ -49,7 +49,7 @@ int main(void)
         {
             cnt++;
             flag.obstacle = 1;
-            if(cnt >= 3 && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 90)))
+            if(cnt >= 2 && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 90)))
             {
                 flag.obstacle = 2;
                 t = time_count;
@@ -59,10 +59,6 @@ int main(void)
             cnt--;
         else if(cnt == 0 && flag.obstacle == 1)
             flag.obstacle = 0;
-        /*if(flag.lost == 1)
-        {
-            remote();
-        }*/
     }
 }
 

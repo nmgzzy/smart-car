@@ -34,8 +34,6 @@ float img_err = 0;
 void PIT0_IRQHandler(void)
 {
     PIT_FlAG_CLR(pit0);
-    //uint8 buf[2];
-    //uint16 distance = 1500;
     //pit_time_start(pit2);
     static uint8 cnt=0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
@@ -70,9 +68,9 @@ void PIT0_IRQHandler(void)
         cnt = 0;
     }
     cnt++;
-    //itestVal[1] = pit_get_us(pit2);
-    //if(time_count > 1000 && time_count <= 2000)
-    //    itestVal[0] += itestVal[1];
+    /*itestVal[1] = pit_get_us(pit2);
+    if(time_count > 1000 && time_count <= 2000)
+        itestVal[0] += itestVal[1];*/
 }
 
 void vcan_sendware(uint8 *wareaddr, uint32 waresize)

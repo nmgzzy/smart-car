@@ -188,13 +188,13 @@ static void print_menu(uint8 page, uint8 choice)
             "tim.ob_d",
             "tim.slow_a",
             "tim.slow_b",
-            "",
-            ""
+            "tim.slow_c",
+            "tim.slow_d"
         },
         //page15-param11
         {
-            "",
-            "",
+            "tim.slow_e",
+            "tim.slow_f",
             "",
             "",
             "",
@@ -227,6 +227,7 @@ static void print_menu(uint8 page, uint8 choice)
     };
     static uint8 last_page = 0;
     uint8 i;
+    char buff[5];
     if(last_page != page)
     {
         OLED_Fill(0);
@@ -246,7 +247,8 @@ static void print_menu(uint8 page, uint8 choice)
             OLED_P8x16Str(100,2,"ZZY");
             voltage = (uint16)(voltage*0.9f+adc_once(VBAT_PIN,ADC_12bit)*0.1f);
             i = (uint8)(limit_ab(voltage - 2926, 0 , 329)/3.3f);
-            OLED_Print_uint16(90, 7, i, 0, 0);
+            sprintf(buff, "%d \0", i);
+            OLED_P6x8Str(95, 7, (uint8*)buff);
             break;
         case 2:         //set
             for(i=0; i<8; i++)
@@ -285,7 +287,7 @@ static void print_menu(uint8 page, uint8 choice)
             for(i=0; i<8; i++)
                 OLED_P6x8Str(7,i,menu[page][i]);
             if(page!=9)
-                OLED_Print_float(64, 0, show_parameter, 4, 3);
+                OLED_Print_float(70, 0, show_parameter, 4, 3);
             break;
     }
     last_page = page;
@@ -487,11 +489,11 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 76)    adj_u8(&tim.obstacle_d, 1);
     else if(flag_parameters == 77)    adj_u8(&tim.slow_a, 1);
     else if(flag_parameters == 78)    adj_u8(&tim.slow_b, 1);
-    else if(flag_parameters == 79)    ;
-    else if(flag_parameters == 80)    ;
+    else if(flag_parameters == 79)    adj_u8(&tim.slow_c, 1);
+    else if(flag_parameters == 80)    adj_u8(&tim.slow_d, 1);
     ////////////////////////////
-    else if(flag_parameters == 81)    ;
-    else if(flag_parameters == 82)    ;
+    else if(flag_parameters == 81)    adj_u8(&tim.slow_e, 1);
+    else if(flag_parameters == 82)    adj_u8(&tim.slow_f, 1);
     else if(flag_parameters == 83)    ;
     else if(flag_parameters == 84)    ;
     else if(flag_parameters == 85)    ;
@@ -744,6 +746,10 @@ void displayDebug(void)
     OLED_P6x8Str(0, 6, (uint8*)buff);
     sprintf(buff, "Err:%3.1f Cy:%d  \0", pid_dir[Balance_mode].error, 56-line_cy);
     OLED_P6x8Str(0, 7, (uint8*)buff);
+
+    //sprintf(buff, "%d \0", itestVal[0]/1000);
+    //OLED_P6x8Str(0, 7, (uint8*)buff);
+
 
 }
 

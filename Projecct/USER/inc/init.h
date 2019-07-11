@@ -44,6 +44,10 @@ typedef struct{
     uint8 obstacle_d;
     uint8 slow_a;
     uint8 slow_b;
+    uint8 slow_c;
+    uint8 slow_d;
+    uint8 slow_e;
+    uint8 slow_f;
 }TIME_t;
 
 void pidInit(void);
