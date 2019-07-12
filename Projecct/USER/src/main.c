@@ -45,7 +45,8 @@ int main(void)
            && (time_count-t > 500*3 || t == 0)
            && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
                || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
-           && flag.obstacle < 2)
+           && flag.obstacle < 2
+           && flag.circle < 2)
         {
             cnt++;
             flag.obstacle = 1;

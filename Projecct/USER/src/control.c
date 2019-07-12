@@ -16,7 +16,8 @@ int BalanceControl(void)
 {
     static float camera_angle, camera_angle_last;
     uint8 offset = 0;
-    static uint8 cnt = 0,error=0;
+    static uint8 cnt = 0,error=0, ramp_cnt = 0;
+    static uint16 ramp_timecnt= 0;
     int angle_out = 0;
     float t;
     cnt++; if(cnt >= 10) cnt = 0;
@@ -81,12 +82,12 @@ int BalanceControl(void)
 
     if(cnt%5==0) uart_putchar(COM_UART, offset);
 
-    if((CarAttitude.Pitch > 30 || CarAttitude.Pitch < -60 || myfabs(CarAttitude.Roll) > 30)
+    if((CarAttitude.Pitch > 30 || CarAttitude.Pitch < -80 || myfabs(CarAttitude.Roll) > 30)
        && flag.mode != MODE_DEBUG && time_count>1000)
         error++;
     else
         error = 0;
-    if(error>10)
+    if(error>50)
     {
         flag.lost = 1;
         printLog("Angle out of range");
@@ -105,13 +106,52 @@ int BalanceControl(void)
         t = pid_angle[Balance_mode].d * (-CarAttitudeRate.Pitch);
         if(t < 20 || t > -20) t = 0;
         pid_angle[Balance_mode].output = -pid_angle[Balance_mode].p * pid_angle[Balance_mode].error + t;
+        if(flag.ramp == 0 && CarAttitude.Pitch > -21 && time_count > 1000
+           && !flag.broken_road && !flag.obstacle && flag.circle < 2)
+        {
+            ramp_cnt++;
+            if(ramp_cnt > 10)
+            {
+                flag.ramp = 1;
+                ramp_cnt = 0;
+            }
+        }
+        if(flag.ramp == 1 && CarAttitude.Pitch < -34)
+        {
+            flag.ramp = 2;
+        }
+        if(flag.ramp == 2)
+        {
+            if(myfabs(CarAttitude.Pitch+31) < 4)
+                ramp_cnt++;
+            else
+                ramp_cnt = 0;
+            if(ramp_cnt > 100)
+            {
+                flag.ramp = 0;
+                ramp_cnt = 0;
+            }
+        }
+        if(flag.ramp > 0)
+        {
+            ramp_timecnt++;
+            if(ramp_timecnt > 1000)
+            {
+                flag.ramp = 0;
+            }
+        }
+        else
+            ramp_timecnt = 0;
     }
     angle_out = (int)pid_angle[Balance_mode].output;
     if(flag.En_std == 0)
         angle_out = 0;
-    //ftestVal[4] = CarAttitude.Pitch*10;///////////////////
-    //ftestVal[5] = CarAttitudeRate.Pitch*10;///////////////////
+
+
+    ftestVal[0] = flag.ramp*500;///////////////////
+    ftestVal[1] = (CarAttitude.Pitch+31)*100;///////////////////
     //ftestVal[5] = angle_out;////////////////////
+
     return angle_out;
 }
 
@@ -141,6 +181,7 @@ int16 circle_time_count[2] = {0};
 int8 circle_dir = 1;
 int8 crcl_cnt = -1;
 int8 crcl_cnt2 = 0;
+//uint16 cl_threshold[2][4]={0};
 float yaw_integ = 0;
 
 uint16 obstacle_time = 0;
@@ -212,32 +253,32 @@ float ErrorCalculate(uint8 mode)
     //sumX = ad_data_now[LX]+ad_data_now[RX]+1;
     for(uint8 i=4; i>0; i--)
         sumHM[i] = sumHM[i-1];
-    sumHM[0] = 0.8f*(sumH + ad_data_now[MD] + 1) + 0.2f*sumHM[0];
+    sumHM[0] = sumH + ad_data_now[MD] + 1;
     sumHM3 = (uint16)(0.3f*sumHM[0] + 0.25f*sumHM[1] + 0.2f*sumHM[2] + 0.15f*sumHM[3] + 0.1f*sumHM[4]);
     sumHM2 = (uint16)(sumH + k_md[mode]*ad_data_now[MD] + 1);
     tAngle = flimit_ab(CarAttitude.Pitch, -20, 0);
+    for(uint8 i=4; i>0; i--)
+        difX_div[i] = difX_div[i-1];
+    difX_div[0] = (int16)(myabs(difX)*0.5f + difX_div[0]*0.5f);
     error1 = 10 * (k_hv[mode]*difH + (10.0f-k_hv[mode])*difV + k_x[mode]*difX)/sumHM2;
     error_out = error1;
 
-    ftestVal[0] = myabs(difH);             /////////////////////////
-    ftestVal[1] = myabs(difV);             ///////////////////////
-    ftestVal[5] = myabs(difX);            /////////////////////////
+    //ftestVal[0] = myabs(difH);             /////////////////////////
+    //ftestVal[0] = myabs(difV);             ///////////////////////
+    //ftestVal[1] = difX_div[2];            /////////////////////////
     ftestVal[2] = sumHM3/2;                    ///////////////////////
-    //ftestVal[4] = sumV;                   /////////////////////////
+    ftestVal[5] = sumV;                   /////////////////////////
     ftestVal[3] = ad_data_now[MD];          ///////////////////////
     ftestVal[4] = 500*flag.circle;          ///////////////////////
 
     //--------------检环-------------------
     if(Balance_mode == 0)
     {
-        if(time_count>1000 && sumHM3 > -70*tAngle+2820 && ad_data_now[MD] > -57*tAngle+836//3500  1200
-            && sumV < 1500 && flag.circle <= 1 && !flag.obstacle && !flag.broken_road)
+        if(time_count>1000 && sumHM3 > -70*tAngle+2820 && ad_data_now[MD] > -57*tAngle+736//3500  1200
+            && sumV < 1800 && flag.circle <= 1 && !flag.obstacle && !flag.broken_road)
             //左中右和很大  中间很大(保证车在中间)
         {
             flag.circle = 1;
-            for(uint8 i=4; i>0; i--)
-                difX_div[i] = difX_div[i-1];
-            difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
             if(((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > -14.3*tAngle+443)
                 || (myabs(difX_div[2]) > -28.6*tAngle+586))//500 700
             {
@@ -310,17 +351,14 @@ float ErrorCalculate(uint8 mode)
     }
     else if(Balance_mode == 1)
     {
-        if(time_count>1000 && sumHM3 >5500 && ad_data_now[MD] > 2900 && sumV < 2000
+        if(time_count>1000 && sumHM3 >5500 && ad_data_now[MD] > 2800 && sumV < 2800
            && flag.circle <= 1 && !flag.obstacle && !flag.broken_road)
             //左中右和很大，中间很大
         {
             flag.circle = 1;
             flag.buzz = 1;////////////////////////////
-            for(uint8 i=4; i>0; i--)
-                difX_div[i] = difX_div[i-1];
-            difX_div[0] = (int16)(difX*0.5f + difX_div[0]*0.5f);
-            if(((difX_div[0] - difX_div[2])*(difX_div[2] - difX_div[4]) < 0 && myabs(difX_div[2]) > 1500)
-                || myabs(difX_div[2]) > 2000)
+            if((difX_div[0]-difX_div[2]<0 && difX_div[2]-difX_div[4]>0 && difX_div[2] > 1500)
+                || difX_div[2] > 2000)
             {
                 flag.circle = 2;
                 yaw_integ = 0;
@@ -363,7 +401,7 @@ float ErrorCalculate(uint8 mode)
             error2 = k_cout[crcl_cnt2]*6.8*(10*difH+1*difX-2*difV)/(sumH+1)
                 - circle_dir*k_cout_offset[crcl_cnt2]*circle_offset[crcl_cnt2];
             if(circle_size[crcl_cnt2] == 1)
-                kcl = trapezoid_fun(circle_time_count[1], 50, 115, 75, 1);
+                kcl = trapezoid_fun(circle_time_count[1], 60, 140, 90, 1);
             else if(circle_size[crcl_cnt2] == 2)
                 kcl = trapezoid_fun(circle_time_count[1], 75, 150, 100, 1);
             else if(circle_size[crcl_cnt2] == 3)
@@ -399,7 +437,7 @@ float ErrorCalculate(uint8 mode)
 
     //ftestVal[0] = error1*10;             /////////////////////////
     //ftestVal[1] = error2*10;             /////////////////////////
-    //ftestVal[4] = kcl*1500;              ///////////////////////////
+    ftestVal[6] = kcl*1500;              ///////////////////////////
     //ftestVal[4] = error_out*10;           ///////////////////////////
     error_out_last = error_out;
     return error_out;
@@ -625,6 +663,8 @@ int SpeedControl(void)
         && line_width < 75 && myfabs(pid_img[Balance_mode].error) < 20 && myfabs(pid_dir[Balance_mode].error) < 20
         && !flag.slow_down && !flag.circle && !flag.obstacle && !flag.broken_road)
         target_speed[Balance_mode] = (int16)(1.1f * target_speed_max[Balance_mode]);
+    else if(flag.ramp > 0)
+        target_speed[Balance_mode] = 200;
 
     if(Balance_mode == 0)//直立
     {

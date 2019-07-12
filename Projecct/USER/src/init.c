@@ -28,6 +28,7 @@ void pidInit(void)
     flag.broken_road_last = 0;
     flag.mode_switch = 0;
     flag.slow_down = 0;
+    flag.ramp = 0;
 
     //---------------直立--------------------
     //角度pid

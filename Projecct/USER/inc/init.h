@@ -35,6 +35,7 @@ typedef struct{
     uint8 circle;
     uint8 mode_switch;
     uint8 slow_down;
+    uint8 ramp;
 }Flag_t;
 
 typedef struct{
