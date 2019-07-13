@@ -54,6 +54,9 @@ void PIT0_IRQHandler(void)
     {
         flag.stop = 1;
         printLog("Hall stop");
+        int8 buff[20];
+        sprintf(buff, ">> %.1f s \0", time_count/500.0);
+        printLog(buff);
     }
 
     if(cnt%5 == 0)
@@ -120,6 +123,8 @@ void UART5_RX_TX_IRQHandler(void)
             {
                 line_cy = com_receive_data[2];
                 line_width = com_receive_data[3];
+                if(line_width == 120)
+                    flag.buzz = 1;
                 if(line_cy != 0 && line_width != 0)
                 {
                     t = (65-line_width<0)?0:(65-line_width)/2.0f;//83//75//65

@@ -195,7 +195,7 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "tim.slow_e",
             "tim.slow_f",
-            "",
+            "testPar1",
             "",
             "",
             "",
@@ -494,7 +494,7 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////
     else if(flag_parameters == 81)    adj_u8(&tim.slow_e, 1);
     else if(flag_parameters == 82)    adj_u8(&tim.slow_f, 1);
-    else if(flag_parameters == 83)    ;
+    else if(flag_parameters == 83)    adj_f(&testPar[1], 1);
     else if(flag_parameters == 84)    ;
     else if(flag_parameters == 85)    ;
     else if(flag_parameters == 86)    ;
