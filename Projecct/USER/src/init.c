@@ -34,26 +34,26 @@ void pidInit(void)
     //角度pid
     pid_angle[0].p = 125;
     pid_angle[0].i = 0;//
-    pid_angle[0].d = 2.3;
+    pid_angle[0].d = 3.5;
 
     //速度pid
-    pid_speed[0].p = 16;
-    pid_speed[0].i = 0.5;
+    pid_speed[0].p = 13;
+    pid_speed[0].i = 1;
     pid_speed[0].d = 0.01;
     pid_speed[0].intlimit = 1200;
     pid_speed[0].errlimit = (int16)(0.6f * target_speed_max[0]);
     pid_speed[0].integ = 0;
 
     //方向pid
-    pid_dir_pset[0] = 10;
+    pid_dir_pset[0] = 11;
     pid_dir[0].p = pid_dir_pset[0];//
     pid_dir[0].i = 0;//
-    pid_dir[0].d = 3;
+    pid_dir[0].d = 8;
 
     //方向角速度pid
-    pid_yaw[0].p = 2.7;
+    pid_yaw[0].p = 2.7f;
     pid_yaw[0].i = 0;//
-    pid_yaw[0].d = 3.4f;
+    pid_yaw[0].d = 2;
 
     pid_img[0].p = 0;
     pid_img[0].i = 0;//
@@ -61,30 +61,30 @@ void pidInit(void)
 
     //---------------三轮--------------------
     //角度pid
-    pid_angle[1].p = 19;
+    pid_angle[1].p = 10;
     pid_angle[1].i = 0;//
     pid_angle[1].d = 11;
 
     //速度pid
-    pid_speed[1].p = 20;
+    pid_speed[1].p = 30;
     pid_spd_set[0] = pid_speed[1].p;
-    pid_speed[1].i = 0.6;
+    pid_speed[1].i = 1;
     pid_spd_set[1] = pid_speed[1].i;
-    pid_speed[1].d = 1;
+    pid_speed[1].d = 0.5;
     pid_speed[1].intlimit = 300;
-    pid_speed[1].errlimit = (int16)(0.7f * target_speed_max[1]);
+    pid_speed[1].errlimit = (int16)(0.6f * target_speed_max[1]);
     pid_speed[1].integ = 0;
 
     //方向pid
-    pid_dir_pset[1] = 22;
+    pid_dir_pset[1] = 25.5;
     pid_dir[1].p = pid_dir_pset[1];//
     pid_dir[1].i = 0;//
-    pid_dir[1].d = 27.5;//
+    pid_dir[1].d = 41;//
 
     //方向角速度pid
     pid_yaw[1].p = 2.7;
     pid_yaw[1].i = 0;//
-    pid_yaw[1].d = 3.4f;
+    pid_yaw[1].d = 2;
 
     pid_img[1].p = 13;
     pid_img[1].i = 0;//
@@ -96,6 +96,10 @@ void pidInit(void)
     tim.obstacle_d = 50;
     tim.slow_a = 0;
     tim.slow_b = 0;
+    tim.slow_c = 0;
+    tim.slow_d = 0;
+    tim.slow_e = 0;
+    tim.slow_f = 0;
 
 }
 

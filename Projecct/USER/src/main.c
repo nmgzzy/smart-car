@@ -5,7 +5,7 @@ void test(void);
 void remote(void);
 
 uint16 distance = 0;
-uint16 servo_duty = 520;
+uint16 servo_duty = 550;
 
 int main(void)
 {

@@ -3,7 +3,7 @@
 #include "systemUI.h"
 #define PAGE_MAX 18
 #define WORDS_MAX 15
-#define DEFAULT_PAR 0
+#define DEFAULT_PAR 1
 
 //page0 选择参数
 //page1 主菜单

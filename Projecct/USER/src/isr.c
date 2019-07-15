@@ -27,7 +27,7 @@ uint32 swich_time = 0, swich_time2 = 0;
 uint8 obstacle_pix = 0;
 uint8 broken_road_cnt = 0;
 uint8 flag_broken_road_cnt = 0;
-uint8 swich = 0;
+uint8 swich = 1;
 uint8 line_cy = 0, line_width = 0;
 float img_err = 0;
 
@@ -52,11 +52,18 @@ void PIT0_IRQHandler(void)
 
     if(gpio_get(HALL_PIN) == 0 && time_count > stop_time*500 && flag.stop == 0)
     {
-        flag.stop = 1;
-        printLog("Hall stop");
-        int8 buff[20];
-        sprintf(buff, ">> %.1f s \0", time_count/500.0);
-        printLog(buff);
+        if(flag.mode == MODE_DEBUG)
+        {
+            flag.buzz = 1;
+        }
+        else
+        {
+            flag.stop = 1;
+            printLog("Hall stop");
+            int8 buff[20];
+            sprintf(buff, ">> %.1f s \0", time_count/500.0);
+            printLog(buff);
+        }
     }
 
     if(cnt%5 == 0)
@@ -123,7 +130,7 @@ void UART5_RX_TX_IRQHandler(void)
             {
                 line_cy = com_receive_data[2];
                 line_width = com_receive_data[3];
-                if(line_width == 120)
+                if(line_width >= 110)
                     flag.buzz = 1;
                 if(line_cy != 0 && line_width != 0)
                 {
