@@ -57,7 +57,7 @@ extern float k_cout_offset[5];
 extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 obstacle_turn_t[2], obstacle_turn_k[2];
-extern uint16 obstacle_delay[2], obstacle_delay_out[2];
+extern uint16 obstacle_delay[2], obstacle_delay2[2], obstacle_delay_out[2];
 extern int8 obstacle_turn_dir[3];
 extern float car_speed_now, k_ei;
 extern int16 target_speed[2];
@@ -70,5 +70,6 @@ extern uint16 ad_data_now[NUM_OF_AD];
 extern uint8 Balance_mode;
 extern uint16 mag_threshold;
 extern uint8 stop_time, swich_mode, swich;
+extern uint16 speed_ramp, speed_broken_road;
 
 #endif

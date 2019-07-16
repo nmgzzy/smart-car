@@ -200,6 +200,7 @@ uint16 obstacle_turn_t[2] = {70,80};
 uint16 obstacle_turn_k[2] = {400,500};
 uint16 obstacle_delay[2]  = {70,60};
 uint16 obstacle_delay_out[2] = {10,100};
+uint16 obstacle_delay2[2] = {50,10};
 int8 obstacle_turn_dir[3] = {1,1,1};
 uint16 bt[2][8];
 uint8 obstacle_cnt = 0;
@@ -406,7 +407,6 @@ float ErrorCalculate(uint8 mode)
                 + circle_dir*(circle_offset[crcl_cnt2]>0?circle_offset[crcl_cnt2]+20:circle_offset[crcl_cnt2]-20);
             if(circle_size[crcl_cnt2] == 1)
                 kcl = trapezoid_fun(circle_time_count[1], 50, 100, 100, 1);
-            //k_circle=1.4, offset=45~50
             else if(circle_size[crcl_cnt2] == 2)
                 kcl = trapezoid_fun(circle_time_count[1], 62, 112, 112, 1);
             else if(circle_size[crcl_cnt2] == 3)
@@ -481,7 +481,7 @@ int DirectionControl(void)
 {
     int dir_out = 0;
     static int dir_out_last = 0;
-    //static int dir_out_pre[5] = {0};
+    static uint8 err = 0;
     float E_error = 0;
     float error_offset = 0;
     float speed_rate = 1;
@@ -495,7 +495,7 @@ int DirectionControl(void)
         bt[0][3] = bt[0][2] + obstacle_turn_t[0];    bt[1][3] = bt[1][2] + obstacle_turn_t[1];
         bt[0][4] = bt[0][3] + obstacle_delay_out[0]; bt[1][4] = bt[1][3] + obstacle_delay_out[1];
         bt[0][5] = bt[0][4] + obstacle_turn_t[0];    bt[1][5] = bt[1][4] + obstacle_turn_t[1];
-        bt[0][6] = bt[0][5] + obstacle_delay[0]-20;  bt[1][6] = bt[1][5] + obstacle_delay[1]-50;
+        bt[0][6] = bt[0][5] + obstacle_delay2[0];    bt[1][6] = bt[1][5] + obstacle_delay2[1];
         bt[0][7] = bt[0][6] + obstacle_turn_t[0];    bt[1][7] = bt[1][6] + obstacle_turn_t[1];
     }
     if(flag.obstacle == 2)
@@ -583,7 +583,11 @@ int DirectionControl(void)
         {
             flag.start = 1;
         }
-        if(ad_data_now[LH]+ad_data_now[MD]+ad_data_now[RH]<120 && flag.En_dir == 1 && flag.mode != MODE_DEBUG && flag.start>0 && flag.obstacle==0)
+        if(ad_data_now[LH]+ad_data_now[MD]+ad_data_now[RH]<100 && flag.En_dir == 1 && flag.mode != MODE_DEBUG && flag.start>0 && flag.obstacle==0)
+            err++;
+        else
+            err = 0;
+        if(err > 100)
         {
             flag.lost = 1;
             printLog("Signal lost");
@@ -616,6 +620,7 @@ uint16 spd_acc = 9;
 float speed_k_limit = 1, car_speed_now = 0, car_speed_now3 = 0;
 double path_length = 0;
 uint8 swich_mode = 1;
+uint16 speed_ramp = 230, speed_broken_road = 260;
 
 int SpeedControl(void)
 {
@@ -711,12 +716,12 @@ int SpeedControl(void)
         target_speed[Balance_mode] = (int16)(1.1f * target_speed_max[Balance_mode]);
     else if(flag.ramp > 0 && Balance_mode == 1)
     {
-        target_speed[Balance_mode] = 230;
+        target_speed[Balance_mode] = speed_ramp;
         flag.buzz = 1;
     }
     else if(flag.broken_road > 0)
     {
-        target_speed[Balance_mode] = 260;
+        target_speed[Balance_mode] = speed_broken_road;
         flag.buzz = 1;
     }
 

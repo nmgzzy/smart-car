@@ -3,7 +3,7 @@
 #include "systemUI.h"
 #define PAGE_MAX 18
 #define WORDS_MAX 15
-#define DEFAULT_PAR 1
+#define DEFAULT_PAR 2
 
 //page0 选择参数
 //page1 主菜单
@@ -28,8 +28,8 @@ static void print_menu(uint8 page, uint8 choice)
     {
         //page0-select param
         {
-            "y0",
-            "y1",
+            "y0 high",
+            "y1 mid",
             "y2",
             "y3",
             "n0",
@@ -77,7 +77,7 @@ static void print_menu(uint8 page, uint8 choice)
             "tarAng 3",
             "tarSpd2",
             "tarSpd 3",
-            "spd_acc",
+            "run dir",
             "k_adc",
             "BalanceMode"
         },
@@ -155,7 +155,7 @@ static void print_menu(uint8 page, uint8 choice)
             "kHcin 3",
             "kHcout2",
             "kHcout 3",
-            "run dir",
+            "spd acc",
             "cl size1"
         },
         //page12-param8
@@ -195,10 +195,10 @@ static void print_menu(uint8 page, uint8 choice)
         {
             "tim.slow_e",
             "tim.slow_f",
-            "testPar1",
-            "",
-            "",
-            "",
+            "spd_ramp",
+            "spd_br",
+            "ob dly2 2",
+            "ob dly2 3",
             "",
             ""
         },
@@ -236,7 +236,7 @@ static void print_menu(uint8 page, uint8 choice)
     switch(page)
     {
         case 0:         //首页
-            OLED_P8x16Str(20,0,"read data n?");
+            OLED_P8x16Str(80,0,"read?");
             for(i=0; i<8; i++)
                 OLED_P6x8Str(7,i,menu[page][i]);
             break;
@@ -407,7 +407,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 3)     adj_f(&target_angle[1], 0.5);
     else if(flag_parameters == 4)     adj_i16(&target_speed_max[0], 5);
     else if(flag_parameters == 5)     adj_i16(&target_speed_max[1], 5);
-    else if(flag_parameters == 6)     adj_u16(&spd_acc, 1);
+    else if(flag_parameters == 6)     adj_i8(&circle_dir, 2);
     else if(flag_parameters == 7)     adj_f(&k_adc, 0.01);
     else if(flag_parameters == 8)     adj_u8(&Balance_mode, 1);
     ////////////////////////////
@@ -462,7 +462,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 52)    adj_f(&k_hv_cin[1], 0.5);
     else if(flag_parameters == 53)    adj_f(&k_hv_cout[0], 0.5);
     else if(flag_parameters == 54)    adj_f(&k_hv_cout[1], 0.5);
-    else if(flag_parameters == 55)    adj_i8(&circle_dir, 2);
+    else if(flag_parameters == 55)    adj_u16(&spd_acc, 1);
     else if(flag_parameters == 56)    adj_u8(&circle_size[0], 1);
     ////////////////////////////
     else if(flag_parameters == 57)    adj_u8(&circle_size[1], 1);
@@ -494,10 +494,10 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////
     else if(flag_parameters == 81)    adj_u8(&tim.slow_e, 1);
     else if(flag_parameters == 82)    adj_u8(&tim.slow_f, 1);
-    else if(flag_parameters == 83)    adj_f(&testPar[1], 1);
-    else if(flag_parameters == 84)    ;
-    else if(flag_parameters == 85)    ;
-    else if(flag_parameters == 86)    ;
+    else if(flag_parameters == 83)    adj_u16(&speed_ramp, 5);
+    else if(flag_parameters == 84)    adj_u16(&speed_broken_road, 5);
+    else if(flag_parameters == 85)    adj_u16(&obstacle_delay2[0], 5);
+    else if(flag_parameters == 86)    adj_u16(&obstacle_delay2[1], 5);
     else if(flag_parameters == 87)    ;
     else if(flag_parameters == 88)    ;
     ////////////////////////////
