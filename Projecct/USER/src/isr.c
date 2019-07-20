@@ -19,7 +19,7 @@
  ********************************************************************************************************************/
 
 #include "isr.h"
-#define _SEND_DATA_
+//#define _SEND_DATA_
 
 uint16 set_time = 50;
 uint32 time_count = 0;
@@ -66,12 +66,12 @@ void PIT0_IRQHandler(void)
         }
     }
 
-    if(cnt%5 == 0)
-    {
+    ftestVal[0] = flag.obstacle*100;
+
 #ifdef _SEND_DATA_
+    if(cnt%5 == 0)
         DataScope_send();
 #endif
-    }
 
     if(cnt >= 50)
     {
@@ -130,8 +130,6 @@ void UART5_RX_TX_IRQHandler(void)
             {
                 line_cy = com_receive_data[2];
                 line_width = com_receive_data[3];
-                if(line_width >= 110)
-                    flag.buzz = 1;
                 if(line_cy != 0 && line_width != 0)
                 {
                     t = (65-line_width<0)?0:(65-line_width)/2.0f;//83//75//65

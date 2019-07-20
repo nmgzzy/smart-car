@@ -39,10 +39,10 @@ typedef struct{
 }Flag_t;
 
 typedef struct{
-    uint8 obstacle_a;
-    uint8 obstacle_b;
-    uint8 obstacle_c;
-    uint8 obstacle_d;
+    uint16 obstacle_a;
+    uint16 obstacle_b;
+    uint16 obstacle_c;
+    uint16 obstacle_d;
     uint8 slow_a;
     uint8 slow_b;
     uint8 slow_c;

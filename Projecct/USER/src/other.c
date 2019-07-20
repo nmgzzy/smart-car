@@ -121,11 +121,18 @@ void data_read(uint8 n)
         tim.slow_c      = parameter[i++];
         tim.slow_d      = parameter[i++];
         tim.slow_e      = parameter[i++];
+        //100
         tim.slow_f      = parameter[i++];
         speed_ramp      = parameter[i++];
         speed_broken_road  = parameter[i++];
         obstacle_delay2[0] = parameter[i++];
         obstacle_delay2[1] = parameter[i++];
+        straight_speed_add  = parameter[i++];
+        obstacle_pix2       = parameter[i++];
+        obstacle_pix3       = parameter[i++];
+        obstacle_detection_cnt = parameter[i++];
+        obt                    = parameter[i++]/10.0f;
+        //110
     }
 }
 
@@ -240,6 +247,11 @@ void data_save(uint8 n)
     parameter[i++] = (int16)speed_broken_road;
     parameter[i++] = (int16)obstacle_delay2[0];
     parameter[i++] = (int16)obstacle_delay2[1];
+    parameter[i++] = (int16)straight_speed_add;
+    parameter[i++] = (int16)obstacle_pix2;
+    parameter[i++] = (int16)obstacle_pix3;
+    parameter[i++] = (int16)obstacle_detection_cnt;
+    parameter[i++] = (int16)(obt*10+0.01f);
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);

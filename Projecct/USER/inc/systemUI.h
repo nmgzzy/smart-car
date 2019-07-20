@@ -27,5 +27,7 @@ void displayDebug(void);
 void printLog(int8 message[20]);
 
 extern uint16 distance;
+extern float obt;
+extern uint8 obstacle_pix2, obstacle_pix3, obstacle_detection_cnt ;
 
 #endif

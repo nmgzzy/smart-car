@@ -3,7 +3,7 @@
 #include "systemUI.h"
 #define PAGE_MAX 18
 #define WORDS_MAX 15
-#define DEFAULT_PAR 2
+#define DEFAULT_PAR 0
 
 //page0 选择参数
 //page1 主菜单
@@ -199,14 +199,14 @@ static void print_menu(uint8 page, uint8 choice)
             "spd_br",
             "ob dly2 2",
             "ob dly2 3",
-            "",
-            ""
+            "strat_spd",
+            "ob_dec_cnt"
         },
         //page16-param12
         {
-            "",
-            "",
-            "",
+            "ob_pix2",
+            "ob_pix3",
+            "obt",
             "",
             "",
             "",
@@ -280,6 +280,7 @@ static void print_menu(uint8 page, uint8 choice)
             distance2 = (buf[0]<<8) | buf[1];
             OLED_Print_uint16(0, 7, distance1, 1, 0);
             OLED_Print_uint16(64, 7, distance2, 1, 0);
+            OLED_Print_uint16(0, 6, gpio_get(HALL_PIN), 0, 0);
             systick_delay_ms(10);
 
             break;  //show
@@ -483,10 +484,10 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 71)    adj_f(&k_ei, 0.1);
     else if(flag_parameters == 72)    adj_u16(&servo_duty, 5);
     ////////////////////////////
-    else if(flag_parameters == 73)    adj_u8(&tim.obstacle_a, 1);
-    else if(flag_parameters == 74)    adj_u8(&tim.obstacle_b, 1);
-    else if(flag_parameters == 75)    adj_u8(&tim.obstacle_c, 1);
-    else if(flag_parameters == 76)    adj_u8(&tim.obstacle_d, 1);
+    else if(flag_parameters == 73)    adj_u16(&tim.obstacle_a, 5);
+    else if(flag_parameters == 74)    adj_u16(&tim.obstacle_b, 5);
+    else if(flag_parameters == 75)    adj_u16(&tim.obstacle_c, 5);
+    else if(flag_parameters == 76)    adj_u16(&tim.obstacle_d, 5);
     else if(flag_parameters == 77)    adj_u8(&tim.slow_a, 1);
     else if(flag_parameters == 78)    adj_u8(&tim.slow_b, 1);
     else if(flag_parameters == 79)    adj_u8(&tim.slow_c, 1);
@@ -498,12 +499,12 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 84)    adj_u16(&speed_broken_road, 5);
     else if(flag_parameters == 85)    adj_u16(&obstacle_delay2[0], 5);
     else if(flag_parameters == 86)    adj_u16(&obstacle_delay2[1], 5);
-    else if(flag_parameters == 87)    ;
-    else if(flag_parameters == 88)    ;
+    else if(flag_parameters == 87)    adj_i8(&straight_speed_add, 2);
+    else if(flag_parameters == 88)    adj_u8(&obstacle_detection_cnt, 1);
     ////////////////////////////
-    else if(flag_parameters == 89)    ;
-    else if(flag_parameters == 90)    ;
-    else if(flag_parameters == 91)    ;
+    else if(flag_parameters == 89)    adj_u8(&obstacle_pix2, 2);
+    else if(flag_parameters == 90)    adj_u8(&obstacle_pix3, 2);
+    else if(flag_parameters == 91)    adj_f(&obt, 0.1f);
     else if(flag_parameters == 92)    ;
     else if(flag_parameters == 93)    ;
     else if(flag_parameters == 94)    ;

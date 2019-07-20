@@ -29,11 +29,7 @@ int BalanceControl(void)
         BMX055_DataRead(&Q_raw, 1);
         if(myabs(Q_raw.Mag-mag_threshold) > 500 && time_count > stop_time*500 && flag.stop == 0)
         {
-            if(flag.mode == MODE_DEBUG)
-            {
-                flag.buzz = 1;
-            }
-            else
+            if(flag.mode != MODE_DEBUG)
             {
                 flag.stop = 1;
                 printLog("Mag stop");
@@ -383,7 +379,7 @@ float ErrorCalculate(uint8 mode)
             //左中右和很大，中间很大
         {
             flag.circle = 1;
-            flag.buzz = 1;////////////////////////////
+            //flag.buzz = 1;////////////////////////////
             if((difX_div[0]-difX_div[2]<0 && difX_div[2]-difX_div[4]>0 && difX_div[2] > 1500)
                 || difX_div[2] > 2000)
             {
@@ -395,7 +391,7 @@ float ErrorCalculate(uint8 mode)
                     crcl_cnt2 = cl_num - 1 - crcl_cnt;
                 else
                     crcl_cnt2 = crcl_cnt;
-                //flag.buzz = 1;///////////////////////////
+                flag.buzz = 1;///////////////////////////
                 circle_time_count[1] = 0;
             }
         }
@@ -420,7 +416,7 @@ float ErrorCalculate(uint8 mode)
             {
                 flag.circle = 3;
                 circle_time_count[1] = 0;
-                //flag.buzz = 3;///////////////////////////
+                flag.buzz = 3;///////////////////////////
             }
         }
         else if(flag.circle == 3)
@@ -452,7 +448,7 @@ float ErrorCalculate(uint8 mode)
         {
             circle_time_count[0] = 0;
             flag.circle = 0;
-            //flag.buzz = 3;////////////////////////////
+            //flag.buzz = 2;////////////////////////////
         }
     }
     else if(flag.circle > 1)
@@ -621,6 +617,7 @@ float speed_k_limit = 1, car_speed_now = 0, car_speed_now3 = 0;
 double path_length = 0;
 uint8 swich_mode = 1;
 uint16 speed_ramp = 230, speed_broken_road = 260;
+int8 straight_speed_add = 0;
 
 int SpeedControl(void)
 {
@@ -713,7 +710,7 @@ int SpeedControl(void)
     else if(Balance_mode == 1 && line_cy!=0 && line_width!=0
         && line_width < 75 && myfabs(pid_img[Balance_mode].error) < 20 && myfabs(pid_dir[Balance_mode].error) < 20
         && !flag.slow_down && !flag.circle && !flag.obstacle && !flag.broken_road)
-        target_speed[Balance_mode] = (int16)(1.1f * target_speed_max[Balance_mode]);
+        target_speed[Balance_mode] = (int16)(1.1f * target_speed_max[Balance_mode]+straight_speed_add);
     else if(flag.ramp > 0 && Balance_mode == 1)
     {
         target_speed[Balance_mode] = speed_ramp;
@@ -838,7 +835,7 @@ void motor_out(int angle_out, int speed_out, int dir_out)
     if(cnt > 10 && cnt < 400)
     {
         AngleSpeedSum = speed_out;
-        AngleSpeedSum = limit_ab(AngleSpeedSum, (Balance_mode ? -200 : -400), 200);
+        AngleSpeedSum = limit_ab(AngleSpeedSum, (Balance_mode ? -150 : -300), 200);
     }
     else if(cnt > 400)
     {
