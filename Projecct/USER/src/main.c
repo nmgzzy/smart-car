@@ -41,35 +41,87 @@ int main(void)
             simiic_read_buf2(0xB0>>1, 0x00, IIC, buf, 2);//三轮
             distance = (buf[0]<<8) | buf[1];
         }
-/*
-        if(distance > 2000)
-            distance = 0;
-        if(distance > 100 && distance < 900
-           && obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
-           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
-           && (time_count-t > 500*3 || t == 0)
-           && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*50
-               || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*50)//区间检测
-           && flag.obstacle < 2
-           && flag.circle < 2
-               )
+        if(distance > 1300)
+            distance = 1300;
+
+        if(flag.ob_detection == 0)
         {
-            cnt++;
-            flag.obstacle = 1;
-            if(cnt >= obstacle_detection_cnt  && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 80)))
-            {
-                flag.obstacle = 2;
-                t = time_count;
-            }
-        }*/
-
-        if(time_count == (int)(obt*500))
+            if(time_count == (int)(obt*500))
             flag.obstacle = 2;
-
-        else if(cnt > 0)
-            cnt--;
-        else if(cnt == 0 && flag.obstacle == 1)
-            flag.obstacle = 0;
+        }
+        else if(flag.ob_detection == 1)
+        {
+            if(distance > 100 && distance < 900
+               && obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
+               && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
+               && (time_count-t > 500*3 || t == 0)
+               && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
+                   || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
+               && flag.obstacle < 2
+               && flag.circle < 2
+                   )
+            {
+                cnt++;
+                flag.obstacle = 1;
+                if(cnt >= obstacle_detection_cnt  && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 80)))
+                {
+                    flag.obstacle = 2;
+                    t = time_count;
+                }
+            }
+            else if(cnt > 0)
+                cnt--;
+            else if(cnt == 0 && flag.obstacle == 1)
+                flag.obstacle = 0;
+        }
+        else if(flag.ob_detection == 2)
+        {
+            if(obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
+               && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
+               && (time_count-t > 500*3 || t == 0)
+               && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
+                   || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
+               && flag.obstacle < 2
+               && flag.circle < 2
+                   )
+            {
+                cnt++;
+                flag.obstacle = 1;
+                if(cnt >= obstacle_detection_cnt && obstacle_pix > (Balance_mode ? 30 : 80))
+                {
+                    flag.obstacle = 2;
+                    t = time_count;
+                }
+            }
+            else if(cnt > 0)
+                cnt--;
+            else if(cnt == 0 && flag.obstacle == 1)
+                flag.obstacle = 0;
+        }
+        else if(flag.ob_detection == 2)
+        {
+            if(distance > 100 && distance < 900
+               && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
+               && (time_count-t > 500*3 || t == 0)
+               && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
+                   || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
+               && flag.obstacle < 2
+               && flag.circle < 2
+                   )
+            {
+                cnt++;
+                flag.obstacle = 1;
+                if(cnt >= obstacle_detection_cnt  && distance < 800)
+                {
+                    flag.obstacle = 2;
+                    t = time_count;
+                }
+            }
+            else if(cnt > 0)
+                cnt--;
+            else if(cnt == 0 && flag.obstacle == 1)
+                flag.obstacle = 0;
+        }
     }
 }
 

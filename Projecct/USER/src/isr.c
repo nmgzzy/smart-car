@@ -52,11 +52,7 @@ void PIT0_IRQHandler(void)
 
     if(gpio_get(HALL_PIN) == 0 && time_count > stop_time*500 && flag.stop == 0)
     {
-        if(flag.mode == MODE_DEBUG)
-        {
-            flag.buzz = 1;
-        }
-        else
+        if(flag.mode != MODE_DEBUG)
         {
             flag.stop = 1;
             printLog("Hall stop");

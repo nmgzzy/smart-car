@@ -132,6 +132,7 @@ void data_read(uint8 n)
         obstacle_pix3       = parameter[i++];
         obstacle_detection_cnt = parameter[i++];
         obt                    = parameter[i++]/10.0f;
+        flag.ob_detection   = parameter[i++];
         //110
     }
 }
@@ -252,6 +253,7 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_pix3;
     parameter[i++] = (int16)obstacle_detection_cnt;
     parameter[i++] = (int16)(obt*10+0.01f);
+    parameter[i++] = (int16)(flag.ob_detection);
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);

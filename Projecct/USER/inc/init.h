@@ -36,6 +36,7 @@ typedef struct{
     uint8 mode_switch;
     uint8 slow_down;
     uint8 ramp;
+    uint8 ob_detection;
 }Flag_t;
 
 typedef struct{

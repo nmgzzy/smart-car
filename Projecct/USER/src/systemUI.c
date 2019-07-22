@@ -207,7 +207,7 @@ static void print_menu(uint8 page, uint8 choice)
             "ob_pix2",
             "ob_pix3",
             "obt",
-            "",
+            "2cam 3tof",
             "",
             "",
             "",
@@ -484,10 +484,10 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 71)    adj_f(&k_ei, 0.1);
     else if(flag_parameters == 72)    adj_u16(&servo_duty, 5);
     ////////////////////////////
-    else if(flag_parameters == 73)    adj_u16(&tim.obstacle_a, 5);
-    else if(flag_parameters == 74)    adj_u16(&tim.obstacle_b, 5);
-    else if(flag_parameters == 75)    adj_u16(&tim.obstacle_c, 5);
-    else if(flag_parameters == 76)    adj_u16(&tim.obstacle_d, 5);
+    else if(flag_parameters == 73)    adj_u16(&tim.obstacle_a, 1);
+    else if(flag_parameters == 74)    adj_u16(&tim.obstacle_b, 1);
+    else if(flag_parameters == 75)    adj_u16(&tim.obstacle_c, 1);
+    else if(flag_parameters == 76)    adj_u16(&tim.obstacle_d, 1);
     else if(flag_parameters == 77)    adj_u8(&tim.slow_a, 1);
     else if(flag_parameters == 78)    adj_u8(&tim.slow_b, 1);
     else if(flag_parameters == 79)    adj_u8(&tim.slow_c, 1);
@@ -503,9 +503,9 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 88)    adj_u8(&obstacle_detection_cnt, 1);
     ////////////////////////////
     else if(flag_parameters == 89)    adj_u8(&obstacle_pix2, 2);
-    else if(flag_parameters == 90)    adj_u8(&obstacle_pix3, 2);
+    else if(flag_parameters == 90)    adj_u8(&obstacle_pix3, 1);
     else if(flag_parameters == 91)    adj_f(&obt, 0.1f);
-    else if(flag_parameters == 92)    ;
+    else if(flag_parameters == 92)    adj_u8(&flag.ob_detection, 1);
     else if(flag_parameters == 93)    ;
     else if(flag_parameters == 94)    ;
     else if(flag_parameters == 95)    ;
