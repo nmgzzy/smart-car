@@ -1,8 +1,7 @@
 ﻿//此文件包含OLED调试的相关函数
 //注意不要在中断函数中使用OLED显示
 #include "systemUI.h"
-#define PAGE_MAX 18
-#define WORDS_MAX 15
+
 #define DEFAULT_PAR 0
 
 //page0 选择参数
@@ -18,211 +17,211 @@
 static uint16 voltage = 0;
 static uint8 flag_updown=0;
 static int8 flag_plus_minus=0, flag_symbol = 0;
-static double show_parameter;
+//static double show_parameter;
 
 
 //更新屏幕
 static void print_menu(uint8 page, uint8 choice)
 {
-    uint8 menu[PAGE_MAX][8][WORDS_MAX] =
+    Page_t menu[PAGE_MAX] =
     {
         //page0-select param
         {
-            "y0 high",
-            "y1 mid",
-            "y2",
-            "y3",
-            "n0",
-            "n1",
-            "n2",
-            "n3"
+            "y0 high",0,
+            "y1 mid",0,
+            "y2",0,
+            "y3",0,
+            "n0",0,
+            "n1",0,
+            "n2",0,
+            "n3",0
         },
         //page1-main
         {
-            "GO!!!",
-            "set",
-            "show",
-            "Param1",
-            "Param2-ang-spd",
-            "Param3-dirpid",
-            "Param4-dir",
-            "Param5-ob"
+            "GO!!!",0,
+            "set",0,
+            "show",0,
+            "Param1",0,
+            "Param2-ang-spd",0,
+            "Param3-dirpid",0,
+            "Param4-dir",0,
+            "Param5-ob",0
         },
         //page2-set
         {
-            "6s",
-            "17s",
-            "50s",
-            "Debug mode",
-            "flag_std",
-            "flag_spd",
-            "flag_dir",
-            "PWM test"
+            "6s",0,
+            "17s",0,
+            "50s",0,
+            "Debug mode",0,
+            "flag_std",0,
+            "flag_spd",0,
+            "flag_dir",0,
+            "PWM test",0
         },
         //page3-show
         {
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "",0,
+            "",0,
+            "",0,
+            "",0,
+            "",0,
+            "",0,
+            "",0,
+            "",0
         },
         //page4-param1
         {
-            "setTime",
-            "tarAng2",
-            "tarAng 3",
-            "tarSpd2",
-            "tarSpd 3",
-            "run dir",
-            "k_adc",
-            "BalanceMode"
+            "setTime",set_time,
+            "tarAng2",target_angle[0],
+            "tarAng 3",target_angle[1],
+            "tarSpd2",target_speed_max[0],
+            "tarSpd 3",target_speed_max[1],
+            "run dir",run_dir,
+            "k_adc",k_adc,
+            "BalanceMode", Balance_mode
         },
         //page5-param2
         {
-            "angKp2",
-            "angKd2",
-            "angKp 3",
-            "angKd 3",
-            "spdKp2",
-            "spdKi2",
-            "spdKp 3",
-            "spdKi 3"
+            "angKp2",pid_angle[0].p,
+            "angKd2",pid_angle[0].d,
+            "angKp 3",pid_angle[1].p,
+            "angKd 3",pid_angle[1].d,
+            "spdKp2",pid_speed[0].p,
+            "spdKi2",pid_speed[0].i,
+            "spdKp 3",pid_speed[1].p,
+            "spdKi 3",pid_speed[1].i
         },
         //page6-param3
         {
-            "dirKp2",
-            "dirKd2",
-            "dirKp 3",
-            "dirKd 3",
-            "yawKp2",
-            "yawKd2",
-            "yawKp 3",
-            "yawKd 3"
+            "dirKp2",pid_dir_pset[0],
+            "dirKd2",pid_dir[0].d,
+            "dirKp 3",pid_dir_pset[1],
+            "dirKd 3",pid_dir[1].d,
+            "yawKp2",pid_yaw[0].p,
+            "yawKd2",pid_yaw[0].d,
+            "yawKp 3",pid_yaw[1].p,
+            "yawKd 3",pid_yaw[1].d
         },
         //page7-param4
         {
-            "spdKd2",
-            "spdKd 3",
-            "k_hv2",
-            "k_hv 3",
-            "k_md2",
-            "k_md 3",
-            "k_x2",
-            "k_x 3"
+            "spdKd2",pid_speed[0].d,
+            "spdKd 3",pid_speed[1].d,
+            "k_hv2",k_hv[0],
+            "k_hv 3",k_hv[1],
+            "k_md2",k_md[0],
+            "k_md 3",k_md[1],
+            "k_x2",k_x[0],
+            "k_x 3",k_x[1]
         },
         //page8-param5
         {
-            "ob_t2",
-            "ob_k2",
-            "ob_dly_o2",
-            "ob_t 3",
-            "ob_k 3",
-            "ob_dly_o 3",
-            "obdir1 +L-R",
-            "obdir2 +L-R"
+            "ob_t2",obstacle_turn_t[0],
+            "ob_k2",obstacle_turn_k[0],
+            "ob_dly_o2",obstacle_delay_out[0],
+            "ob_t 3",obstacle_turn_t[1],
+            "ob_k 3",obstacle_turn_k[1],
+            "ob_dly_o 3",obstacle_delay_out[1],
+            "obdir1 +L-R",obstacle_turn_dir[0],
+            "obdir2 +L-R",obstacle_turn_dir[1]
         },
         //page9
         {
-            "Param6-ob-cin",
-            "Param7-cl",
-            "Param8-cout",
-            "Param9",
-            "Param10-tim",
-            "Param11",
-            "Param12",
-            "Param13"
+            "Param6-ob-cin",0,
+            "Param7-cl",0,
+            "Param8-cout",0,
+            "Param9",0,
+            "Param10-tim",0,
+            "Param11",0,
+            "Param12",0,
+            "Param13",0
         },
         //page10-param6
         {
-            "ob dly2",
-            "ob dly 3",
-            "k_cin1",
-            "k_cin2",
-            "k_cin3",
-            "cin_off1",
-            "cin off2",
-            "cin off3"
+            "ob dly2",obstacle_delay[0],
+            "ob dly 3",obstacle_delay[1],
+            "k_cin1",k_circle[0],
+            "k_cin2",k_circle[1],
+            "k_cin3",k_circle[2],
+            "cin_off1",circle_offset[0],
+            "cin off2",circle_offset[1],
+            "cin off3",circle_offset[2],
         },
         //page11-param7
         {
-            "cl num",
-            "cl time in",
-            "kHcin2",
-            "kHcin 3",
-            "kHcout2",
-            "kHcout 3",
-            "spd acc",
-            "cl size1"
+            "cl num",cl_num,
+            "cl time in",cl_time,
+            "kHcin2",k_hv_cin[0],
+            "kHcin 3",k_hv_cin[1],
+            "kHcout2",k_hv_cout[0],
+            "kHcout 3",k_hv_cout[1],
+            "spd acc",spd_acc,
+            "cl size1",circle_size[0]
         },
         //page12-param8
         {
-            "cl size2",
-            "cl size3",
-            "k_cout1",
-            "k_cout2",
-            "k_cout3",
-            "cout off1",
-            "cout off2",
-            "cout off3"
+            "cl size2",circle_size[1],
+            "cl size3",circle_size[2],
+            "k_cout1",k_cout[0],
+            "k_cout2",k_cout[1],
+            "k_cout3",k_cout[2],
+            "cout off1",k_cout_offset[0],
+            "cout off2",k_cout_offset[1],
+            "cout off3",k_cout_offset[2]
         },
         //page13-param9
         {
-            "magTh",
-            "stop time",
-            "swich_mode",
-            "swich",
-            "img.kp",
-            "img.kd",
-            "k ei",
-            "servo"
+            "magTh",mag_threshold,
+            "stop time",stop_time,
+            "swich_mode",swich_mode,
+            "swich",swich,
+            "img.kp",pid_img[1].p,
+            "img.kd",pid_img[1].d,
+            "k ei",k_ei,
+            "servo",servo_duty
         },
         //page14-param10
         {
-            "tim.ob_a",
-            "tim.ob_b",
-            "tim.ob_c",
-            "tim.ob_d",
-            "tim.slow_a",
-            "tim.slow_b",
-            "tim.slow_c",
-            "tim.slow_d"
+            "tim.ob_a",tim.obstacle_a,
+            "tim.ob_b",tim.obstacle_b,
+            "tim.ob_c",tim.obstacle_c,
+            "tim.ob_d",tim.obstacle_d,
+            "tim.slow_a",tim.slow_a,
+            "tim.slow_b",tim.slow_b,
+            "tim.slow_c",tim.slow_c,
+            "tim.slow_d",tim.slow_d
         },
         //page15-param11
         {
-            "tim.slow_e",
-            "tim.slow_f",
-            "spd_ramp",
-            "spd_br",
-            "ob dly2 2",
-            "ob dly2 3",
-            "strat_spd",
-            "ob_dec_cnt"
+            "tim.slow_e",tim.slow_e,
+            "tim.slow_f",tim.slow_f,
+            "spd_ramp",speed_ramp,
+            "spd_br",speed_broken_road,
+            "ob dly2 2",obstacle_delay2[0],
+            "ob dly2 3",obstacle_delay2[1],
+            "strat_spd",straight_speed_add,
+            "ob_dec_cnt",obstacle_detection_cnt
         },
         //page16-param12
         {
-            "ob_pix2",
-            "ob_pix3",
-            "obt",
-            "2cam 3tof",
-            "",
-            "",
-            "",
-            ""
+            "ob_pix2",obstacle_pix2,
+            "ob_pix3",obstacle_pix3,
+            "obt",obt,
+            "2cam 3tof",flag.ob_detection,
+            "k_servo",k_servo,
+            "       ",0,
+            "       ",0,
+            "       ",0
         },
         //page17-param13
         {
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0
         }
     };
     static uint8 last_page = 0;
@@ -238,11 +237,11 @@ static void print_menu(uint8 page, uint8 choice)
         case 0:         //首页
             OLED_P8x16Str(80,0,"read?");
             for(i=0; i<8; i++)
-                OLED_P6x8Str(7,i,menu[page][i]);
+                OLED_P6x8Str(7,i,menu[page].line[i].name);
             break;
         case 1:         //主菜单
             for(i=0; i<8; i++)
-                OLED_P6x8Str(10,i,menu[page][i]);
+                OLED_P6x8Str(10,i,menu[page].line[i].name);
             OLED_P8x16Str(100,0,"NNU");
             OLED_P8x16Str(100,2,"ZZY");
             voltage = (uint16)(voltage*0.9f+adc_once(VBAT_PIN,ADC_12bit)*0.1f);
@@ -252,7 +251,7 @@ static void print_menu(uint8 page, uint8 choice)
             break;
         case 2:         //set
             for(i=0; i<8; i++)
-                OLED_P6x8Str(7,i,menu[page][i]);
+                OLED_P6x8Str(7,i,menu[page].line[i].name);
             OLED_Print_uint16(80, 4, flag.En_std, 0, 0);
             OLED_Print_uint16(80, 5, flag.En_spd, 0, 0);
             OLED_Print_uint16(80, 6, flag.En_dir, 0, 0);
@@ -286,9 +285,10 @@ static void print_menu(uint8 page, uint8 choice)
             break;  //show
         default:         //parameter
             for(i=0; i<8; i++)
-                OLED_P6x8Str(7,i,menu[page][i]);
+                OLED_P6x8Str(7,i,menu[page].line[i].name);
             if(page!=9)
-                OLED_Print_float(70, 0, show_parameter, 4, 3);
+                for(i=0; i<8; i++)
+                    OLED_Print_float(74, i, menu[page].line[i].data, 4, 2);
             break;
     }
     last_page = page;
@@ -311,22 +311,21 @@ uint8 readKey(void)
     {
         if(keysta[i] != keybk[i])
         {
-            if(keybk[i] == 0)
+            if(keybk[i] == 0 && k == 0)
             {
                 key = i+1;
             }
             keybk[i]=keysta[i];
             k = 0;
         }
-        else if(keysta[i] == 0 && keybk[i] == 0 && (i==0||i==2) && flag_updown == 1)
+        else if(keysta[i] == 0 && keybk[i] == 0 && (i==0||i==2))
         {
             j++;
-            if(j > (k?20:150))
+            if(j > (k?10:60))
             {
                 j = 0;
                 key = i+1;
-                k++;
-                if(k>250) k = 1;
+                k = 1;
             }
         }
     }
@@ -335,7 +334,7 @@ uint8 readKey(void)
 
 static void adj_f(float* k, float step)
 {
-    show_parameter = *k;
+    //show_parameter = *k;
     if(flag_plus_minus != 0)
     {
         *k += flag_plus_minus*step;
@@ -344,7 +343,7 @@ static void adj_f(float* k, float step)
 }
 static void adj_u8(uint8* k, uint8 step)
 {
-    show_parameter = *k;
+    //show_parameter = *k;
     if(flag_plus_minus == 1)
     {
         flag_plus_minus = 0;
@@ -358,11 +357,11 @@ static void adj_u8(uint8* k, uint8 step)
 }
 static void adj_i8(int8* k, uint8 step)
 {
-    show_parameter = *k;
+    //show_parameter = *k;
     if(flag_symbol == 1)
     {
         flag_symbol = 0;
-        *k = -*k;
+        //*k = -*k;
     }
     if(flag_plus_minus != 0)
     {
@@ -372,7 +371,7 @@ static void adj_i8(int8* k, uint8 step)
 }
 static void adj_u16(uint16* k, uint8 step)
 {
-    show_parameter = *k;
+    //show_parameter = *k;
     if(flag_plus_minus == 1)
     {
         flag_plus_minus = 0;
@@ -386,11 +385,11 @@ static void adj_u16(uint16* k, uint8 step)
 }
 static void adj_i16(int16* k, uint8 step)
 {
-    show_parameter = *k;
+    //show_parameter = *k;
     if(flag_symbol == 1)
     {
         flag_symbol = 0;
-        *k = -*k;
+        //*k = -*k;
     }
     if(flag_plus_minus != 0)
     {
@@ -408,7 +407,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 3)     adj_f(&target_angle[1], 0.5);
     else if(flag_parameters == 4)     adj_i16(&target_speed_max[0], 5);
     else if(flag_parameters == 5)     adj_i16(&target_speed_max[1], 5);
-    else if(flag_parameters == 6)     adj_i8(&circle_dir, 2);
+    else if(flag_parameters == 6)     adj_i8(&run_dir, 2);
     else if(flag_parameters == 7)     adj_f(&k_adc, 0.01);
     else if(flag_parameters == 8)     adj_u8(&Balance_mode, 1);
     ////////////////////////////
@@ -506,7 +505,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 90)    adj_u8(&obstacle_pix3, 1);
     else if(flag_parameters == 91)    adj_f(&obt, 0.1f);
     else if(flag_parameters == 92)    adj_u8(&flag.ob_detection, 1);
-    else if(flag_parameters == 93)    ;
+    else if(flag_parameters == 93)    adj_f(&k_servo, 0.1f);
     else if(flag_parameters == 94)    ;
     else if(flag_parameters == 95)    ;
     else if(flag_parameters == 96)    ;
@@ -537,6 +536,7 @@ void displayUI(void)
     gpio_init(KEY_PIN_M, GPI, 0); //mid
     while(1)
     {
+        pit_time_start(pit2);
         if(flag.mode != 0) break;
         key = readKey();
 
@@ -708,12 +708,15 @@ void displayUI(void)
         }
         print_menu(page, choice);
         adj_parameter(flag_parameters);
+        t=pit_get_us(pit2);
+        if(t<10000)
+            systick_delay(core_clk_mhz*(10000-t));
     }
     OLED_Fill(0X00);
     data_save(n);
     t=pit_get_ms(pit1);
-    if(t<6000)
-        systick_delay_ms(6000-t);
+    if(t<5000)
+        systick_delay_ms(5000-t);
     uart_putchar(COM_UART, 0x0F);
     systick_delay_ms(10);
     uart_putchar(COM_UART, 0x0F);
@@ -754,10 +757,19 @@ void displayDebug(void)
 
 }
 
-void printLog(int8 message[20])
+void printLog(int8* msg)
 {
-    uint8 i;
-    static uint8 log[8][20] = {0};
+    uint8 i, len;
+    int8 message[20];
+    static uint8 log[8][20] = {0}, max = 0;
+    strcpy(message,msg);
+    len=strlen(message);
+    if(max < len)
+        max = len;
+    if(max > 19)
+        max = 19;
+	for(i=0; i<max-len; i++)
+		strcat(message," ");
     for(i=0; i<7; i++)
     {
         strcpy((char*)log[i],(char*)log[i+1]);

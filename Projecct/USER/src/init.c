@@ -41,8 +41,8 @@ void pidInit(void)
     pid_speed[0].i = 1;
     pid_speed[0].d = 0.01;
     pid_speed[0].intlimit = 1200;
-    pid_speed[0].errlimit = (int16)(0.6f * target_speed_max[0]);
-    pid_speed[0].integ = 0;
+    pid_speed[0].errlimit = (int16)(0.5f * target_speed_max[0]);
+    pid_speed[0].integ = 100;
 
     //方向pid
     pid_dir_pset[0] = 11;
@@ -72,8 +72,8 @@ void pidInit(void)
     pid_spd_set[1] = pid_speed[1].i;
     pid_speed[1].d = 0.5;
     pid_speed[1].intlimit = 300;
-    pid_speed[1].errlimit = (int16)(0.6f * target_speed_max[1]);
-    pid_speed[1].integ = 0;
+    pid_speed[1].errlimit = (int16)(0.5f * target_speed_max[1]);
+    pid_speed[1].integ = 300;
 
     //方向pid
     pid_dir_pset[1] = 25.5;

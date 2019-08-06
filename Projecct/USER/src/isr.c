@@ -19,7 +19,7 @@
  ********************************************************************************************************************/
 
 #include "isr.h"
-//#define _SEND_DATA_
+#define _SEND_DATA_
 
 uint16 set_time = 50;
 uint32 time_count = 0;
@@ -38,11 +38,6 @@ void PIT0_IRQHandler(void)
     static uint8 cnt=0;
     static int angle_out = 0, speed_out = 0, dir_out = 0;
     time_count++;
-    if(time_count>500*set_time && flag.mode != MODE_DEBUG)
-    {
-        flag.lost = 1;
-        printLog("Time out");
-    }
 
     angle_out = BalanceControl();
     speed_out = SpeedControl();
@@ -50,16 +45,23 @@ void PIT0_IRQHandler(void)
     motor_out(angle_out, speed_out, dir_out);
     buzzer_control();
 
-    if(gpio_get(HALL_PIN) == 0 && time_count > stop_time*500 && flag.stop == 0)
+    if(time_count>500*set_time && flag.mode == MODE_START && flag.stop == 0)
     {
-        if(flag.mode != MODE_DEBUG)
-        {
-            flag.stop = 1;
-            printLog("Hall stop");
-            int8 buff[20];
-            sprintf(buff, ">> %.1f s \0", time_count/500.0);
-            printLog(buff);
-        }
+        flag.stop = 1;
+        printLog("Time out");
+        int8 buff[20];
+        sprintf(buff, ">> %.1f s \0", time_count/500.0);
+        printLog(buff);
+    }
+
+    if(gpio_get(HALL_PIN) == 0 && time_count > stop_time*500
+       && flag.stop == 0 && flag.mode == MODE_START)
+    {
+        flag.stop = 1;
+        printLog("Hall stop");
+        int8 buff[20];
+        sprintf(buff, ">> %.1f s \0", time_count/500.0);
+        printLog(buff);
     }
 
     ftestVal[0] = flag.obstacle*100;

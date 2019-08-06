@@ -2,6 +2,8 @@
 #define __SYSTEM_UI_H_
 
 #include "headfile.h"
+#define PAGE_MAX 18
+#define WORDS_MAX 15
 
 typedef enum {
 	MODE_DEBUG=1,
@@ -20,6 +22,14 @@ typedef enum {
 	SPD_HIGH
 } SpdSelect_t;
 
+typedef struct {
+	uint8 name[WORDS_MAX];
+    double data;
+} Line_t;
+
+typedef struct {
+	Line_t line[8];
+} Page_t;
 
 uint8 readKey(void);
 void displayUI(void);
