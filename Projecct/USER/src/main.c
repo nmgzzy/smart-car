@@ -54,6 +54,16 @@ void system_init(void)
     ADC_init();
     communicate_init();
     displayUI();
+
+    bt[0][0] = 0;                                bt[1][0] = 0;
+    bt[0][1] = obstacle_turn_t[0];               bt[1][1] = obstacle_turn_t[1];
+    bt[0][2] = bt[0][1] + obstacle_delay[0];     bt[1][2] = bt[1][1] + obstacle_delay[1];
+    bt[0][3] = bt[0][2] + obstacle_turn_t[0];    bt[1][3] = bt[1][2] + obstacle_turn_t[1];
+    bt[0][4] = bt[0][3] + obstacle_delay_out[0]; bt[1][4] = bt[1][3] + obstacle_delay_out[1];
+    bt[0][5] = bt[0][4] + obstacle_turn_t[0];    bt[1][5] = bt[1][4] + obstacle_turn_t[1];
+    bt[0][6] = bt[0][5] + obstacle_delay2[0];    bt[1][6] = bt[1][5] + obstacle_delay2[1];
+    bt[0][7] = bt[0][6] + obstacle_turn_t[0];    bt[1][7] = bt[1][6] + obstacle_turn_t[1];
+
     pit_init_ms(pit0,2)
     set_irq_priority(PIT0_IRQn,1);
     enable_irq(PIT0_IRQn);
@@ -101,7 +111,8 @@ void ObstacleDetection(void)
             if(cnt >= obstacle_detection_cnt
                && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 80)))
             {
-                flag.obstacle = 2;
+                flag.obstacle = 3;
+                obstacle_step = 0;
                 t = time_count;
             }
         }

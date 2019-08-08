@@ -64,8 +64,6 @@ void PIT0_IRQHandler(void)
         printLog(buff);
     }
 
-    ftestVal[0] = flag.obstacle*100;
-
 #ifdef _SEND_DATA_
     if(cnt%5 == 0)
         DataScope_send();
@@ -149,7 +147,6 @@ void UART5_RX_TX_IRQHandler(void)
             if(flag_broken_road_cnt > 3)
             {
                 flag.broken_road = 1;
-                flag.buzz = 5;
             }
             else
                 flag.broken_road = 0;

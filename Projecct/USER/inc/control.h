@@ -71,7 +71,8 @@ extern uint8 Balance_mode;
 extern uint16 mag_threshold;
 extern uint8 stop_time, swich_mode, swich;
 extern uint16 speed_ramp, speed_broken_road;
-extern int8 straight_speed_add;
-extern float speed_output, k_servo;
+extern int8 straight_speed_add, obstacle_step;
+extern float speed_output, k_servo, dist_kp;
+extern uint16 bt[2][8];
 
 #endif

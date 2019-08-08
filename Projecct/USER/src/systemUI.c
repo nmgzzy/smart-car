@@ -208,9 +208,9 @@ static void print_menu(uint8 page, uint8 choice)
             "obt",obt,
             "2cam 3tof",flag.ob_detection,
             "k_servo",k_servo,
-            "       ",0,
-            "       ",0,
-            "       ",0
+            "dist_kp",dist_kp,
+            "t1",testPar[1],
+            "t2",testPar[2]
         },
         //page17-param13
         {
@@ -257,13 +257,13 @@ static void print_menu(uint8 page, uint8 choice)
             OLED_Print_uint16(80, 6, flag.En_dir, 0, 0);
             break;
         case 3:         //show
-            ad_data_now[LH] = adc_once(ADC_LH,ADC_12bit);
-            ad_data_now[LV] = adc_once(ADC_LV,ADC_12bit);
-            ad_data_now[LX] = adc_once(ADC_LX,ADC_12bit);
-            ad_data_now[MD] = adc_once(ADC_MD,ADC_12bit);
-            ad_data_now[RX] = adc_once(ADC_RX,ADC_12bit);
-            ad_data_now[RV] = adc_once(ADC_RV,ADC_12bit);
-            ad_data_now[RH] = adc_once(ADC_RH,ADC_12bit);
+            ad_data_now[LH] = (uint16)(k_adc*adc_once(ADC_LH,ADC_12bit));
+            ad_data_now[LV] = (uint16)(k_adc*adc_once(ADC_LV,ADC_12bit));
+            ad_data_now[LX] = (uint16)(k_adc*adc_once(ADC_LX,ADC_12bit));
+            ad_data_now[MD] = (uint16)(k_adc*adc_once(ADC_MD,ADC_12bit));
+            ad_data_now[RX] = (uint16)(k_adc*adc_once(ADC_RX,ADC_12bit));
+            ad_data_now[RV] = (uint16)(k_adc*adc_once(ADC_RV,ADC_12bit));
+            ad_data_now[RH] = (uint16)(k_adc*adc_once(ADC_RH,ADC_12bit));
             OLED_Print_uint16( 0, 0, ad_data_now[LH], 1, 0);
             OLED_Print_uint16(78, 0, ad_data_now[RH], 1, 0);
             OLED_Print_uint16(10, 1, ad_data_now[LV], 1, 0);
@@ -506,9 +506,9 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 91)    adj_f(&obt, 0.1f);
     else if(flag_parameters == 92)    adj_u8(&flag.ob_detection, 1);
     else if(flag_parameters == 93)    adj_f(&k_servo, 0.1f);
-    else if(flag_parameters == 94)    ;
-    else if(flag_parameters == 95)    ;
-    else if(flag_parameters == 96)    ;
+    else if(flag_parameters == 94)    adj_f(&dist_kp, 0.1f);
+    else if(flag_parameters == 95)    adj_f(&testPar[1], 0.1f);
+    else if(flag_parameters == 96)    adj_f(&testPar[2], 0.1f);
     ////////////////////////////
     else if(flag_parameters == 97)    ;
     else if(flag_parameters == 98)    ;
