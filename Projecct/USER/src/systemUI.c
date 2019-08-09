@@ -508,7 +508,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 93)    adj_f(&k_servo, 0.1f);
     else if(flag_parameters == 94)    adj_f(&dist_kp, 0.1f);
     else if(flag_parameters == 95)    adj_f(&testPar[1], 0.1f);
-    else if(flag_parameters == 96)    adj_f(&testPar[2], 0.1f);
+    else if(flag_parameters == 96)    adj_f(&testPar[2], 1);
     ////////////////////////////
     else if(flag_parameters == 97)    ;
     else if(flag_parameters == 98)    ;
@@ -735,7 +735,7 @@ void displayDebug(void)
     int8 t = 0;
     sprintf(buff, "Pch:%3.1f Mg:%d \0", CarAttitude.Pitch, Q_raw.Mag);
     OLED_P6x8Str(0, 0, (uint8*)buff);
-    sprintf(buff, "Prt:%3.1f \0", CarAttitudeRate.Pitch);
+    sprintf(buff, "Prt:%3.1f Dis:%d \0", CarAttitudeRate.Pitch,distance);
     OLED_P6x8Str(0, 1, (uint8*)buff);
     sprintf(buff, "Yaw:%3.1f \0", CarAttitude.Yaw);
     OLED_P6x8Str(0, 2, (uint8*)buff);
@@ -743,12 +743,12 @@ void displayDebug(void)
     OLED_P6x8Str(0, 3, (uint8*)buff);
     sprintf(buff, "ob:%3d  br:%3d \0", obstacle_pix, broken_road_cnt);
     OLED_P6x8Str(0, 4, (uint8*)buff);
-    sprintf(buff, "spd:%3d Wd:%d  \0", (int)car_speed_now, line_width);
+    sprintf(buff, "spd:%3d Wd:%d \0", (int)car_speed_now, line_width);
     OLED_P6x8Str(0, 5, (uint8*)buff);
     t = (65-line_width<0)?0:(65-line_width)/2;
-    sprintf(buff, "dis:%3d er:%d  \0", distance/10, -((line_cy-56<0)?line_cy-56-t:line_cy-56+t));
+    sprintf(buff, "dis:%3d er:%d \0", distance/10, -((line_cy-56<0)?line_cy-56-t:line_cy-56+t));
     OLED_P6x8Str(0, 6, (uint8*)buff);
-    sprintf(buff, "Err:%3.1f Cy:%d  \0", pid_dir[Balance_mode].error, 56-line_cy);
+    sprintf(buff, "Err:%3.1f Cy:%d \0", pid_dir[Balance_mode].error, 56-line_cy);
     OLED_P6x8Str(0, 7, (uint8*)buff);
 
     //sprintf(buff, "%d \0", itestVal[0]/1000);

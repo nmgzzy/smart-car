@@ -191,7 +191,7 @@ int BalanceControl(void)
         error++;
     else
         error = 0;
-    if(error>50 && flag.lost == 0)
+    if(error>50 && flag.lost == 0 && flag.mode == MODE_START)
     {
         flag.lost = 1;
         printLog("Angle out of range");
@@ -219,7 +219,7 @@ int BalanceControl(void)
         angle_out = 0;
 
 
-    ftestVal[0] = CarAttitude.Pitch;///////////////////
+    //ftestVal[0] = CarAttitude.Pitch;///////////////////
     //ftestVal[1] = (CarAttitudeRate.Yaw)*10;///////////////////
     //ftestVal[5] = angle_out;////////////////////
 
@@ -255,16 +255,6 @@ int8 crcl_cnt2 = 0;
 int8 circle_dir = 0;
 float yaw_integ = 0;
 
-uint16 obstacle_time = 0;
-uint16 obstacle_turn_t[2] = {70,80};
-uint16 obstacle_turn_k[2] = {400,500};
-uint16 obstacle_delay[2]  = {70,60};
-uint16 obstacle_delay_out[2] = {10,100};
-uint16 obstacle_delay2[2] = {50,10};
-int8 obstacle_turn_dir[3] = {1,1,1};
-uint16 bt[2][8];
-uint8 obstacle_cnt = 0;
-int8 obstacle_step = -1;
 float dist_kp = 1;
 
 void ADC_get(void)
@@ -316,7 +306,7 @@ float ErrorCalculate(uint8 mode)
     static float error_out_last;
     static int16 difX_div[5] = {0};
     int16 difH, difV, difX;
-    uint16 sumH, sumHM2, sumHM3, sumV, sumX;//, sumHM3, sumHM4; sumV,sumX
+    uint16 sumH, sumHM2, sumHM3, sumV;//, sumX;//, sumHM3, sumHM4;
     static float sumHM[5];
     ADC_get();
     difH = ad_data_now[LH]-ad_data_now[RH];
@@ -324,7 +314,7 @@ float ErrorCalculate(uint8 mode)
     difX = ad_data_now[LX]-ad_data_now[RX];
     sumH = ad_data_now[LH]+ad_data_now[RH]+1;
     sumV = ad_data_now[LV]+ad_data_now[RV]+1;
-    sumX = ad_data_now[LX]+ad_data_now[RX]+1;
+    //sumX = ad_data_now[LX]+ad_data_now[RX]+1;
     for(uint8 i=4; i>0; i--)
         sumHM[i] = sumHM[i-1];
     sumHM[0] = sumH + ad_data_now[MD];
@@ -340,9 +330,9 @@ float ErrorCalculate(uint8 mode)
     //ftestVal[0] = difH;             /////////////////////////
     //ftestVal[1] = difV;             ///////////////////////
     //ftestVal[2] = difX;            /////////////////////////
-    ftestVal[3] = sumHM3;                    ///////////////////////
-    ftestVal[4] = sumV;          ///////////////////////
-    ftestVal[5] = ad_data_now[MD];          ///////////////////////
+    //ftestVal[3] = sumHM3;                    ///////////////////////
+    //ftestVal[4] = sumV;          ///////////////////////
+    //ftestVal[5] = ad_data_now[MD];          ///////////////////////
     //ftestVal[4] = 500*flag.circle;          ///////////////////////
     //ftestVal[5] = sumV;                   /////////////////////////
 
@@ -544,8 +534,8 @@ float ErrorCalculate(uint8 mode)
 
     //ftestVal[0] = error1*10;             /////////////////////////
     //ftestVal[1] = error2*10;             /////////////////////////
-    ftestVal[6] = kcl*1500;              ///////////////////////////
-    //ftestVal[4] = error_out*10;           ///////////////////////////
+    //ftestVal[6] = kcl*1500;              ///////////////////////////
+    //ftestVal[0] = error_out;           ///////////////////////////
     error_out_last = error_out;
     return error_out;
 }
@@ -574,16 +564,27 @@ int Yaw_pid_control(float Error)
     return (int)pid_yaw[Balance_mode].output;
 }
 
-int DirectionControl(void)
+
+uint16 obstacle_time = 0;
+uint16 obstacle_turn_t[2] = {70,80};
+uint16 obstacle_turn_k[2] = {400,500};
+uint16 obstacle_delay[2]  = {70,60};
+uint16 obstacle_delay_out[2] = {10,100};
+uint16 obstacle_delay2[2] = {50,10};
+int8 obstacle_turn_dir[3] = {1,1,1};
+uint16 bt[2][8];
+uint8 obstacle_cnt = 0;
+int8 obstacle_step = 0;
+
+int ObstacleClear(float E_error)
 {
-    int dir_out = 0;
-    static int dir_out_last = 0;
-    static uint8 err = 0;
-    float E_error = 0;
-    float error_offset = 0;
+    static uint8 tmpcnt = 0;
     float speed_rate = 1;
+    float error_offset = 0;
+    int dir_out = 0;
     float speed_k = 1;
-    E_error = ErrorCalculate(Balance_mode);
+    static float yaw = 0;
+    static double len = 0;
     if(flag.obstacle == 2)
     {
         flag.buzz = 4;///////////////////////
@@ -620,7 +621,7 @@ int DirectionControl(void)
     }
     else if(flag.obstacle == 3 && Balance_mode == 1)
     {
-        if(obstacle_step == 0)
+        if(obstacle_step == 1)
         {
             if(car_speed_now >= 0)
             {
@@ -633,11 +634,14 @@ int DirectionControl(void)
             }
             if(car_speed_now < 50)
             {
-                //obstacle_step = 1;
-                flag.buzz = 1;//////////////////////////////
+                tmpcnt++;
+                if(tmpcnt > 12)
+                    obstacle_step = 2;
             }
+            else
+                tmpcnt = 0;
         }
-        else if(obstacle_step == 1)
+        else if(obstacle_step == 2)
         {
             if(car_speed_now >= 0)
             {
@@ -648,28 +652,185 @@ int DirectionControl(void)
             {
                 dir_out = Yaw_pid_control(0);
             }
-            if(myabs(distance - 600) < 100 && myfabs(car_speed_now) < 30)
+            if(myabs(distance - 600) < 80 && myfabs(car_speed_now) < 30)
             {
-                obstacle_step = 2;
-                flag.buzz = 1;///////////////////////
+                tmpcnt++;
+                if(tmpcnt > 12)
+                {
+                    flag.obstacle = 4;
+                    obstacle_time = 0;
+                    tmpcnt = 0;
+                    yaw = 0;
+                }
+            }
+            else
+                tmpcnt = 0;
+        }
+    }
+    else if(flag.obstacle == 4)
+    {
+        if(obstacle_step == 1)
+        {
+            yaw += CarAttitudeRate.Yaw*0.02;
+            error_offset = obstacle_turn_dir[obstacle_cnt] * run_dir
+                * obstacle_turn_k[Balance_mode];
+            dir_out = Yaw_pid_control(error_offset);
+            if(yaw > obstacle_turn_t[Balance_mode]
+               || yaw < -obstacle_turn_t[Balance_mode])
+            {
+                tmpcnt++;
+                if(tmpcnt > 5)
+                {
+                    obstacle_step = 2;
+                    obstacle_time = 0;
+                    tmpcnt = 0;
+                    yaw = 0;
+                    len = 0;
+                    flag.buzz = 1;
+                }
             }
         }
         else if(obstacle_step == 2)
         {
-
+            len += car_speed_now;
+            obstacle_time++;
+            dir_out = Yaw_pid_control(0);
+            if(len > 25000)
+               //&& obstacle_time < obstacle_delay[Balance_mode] + 100
+               //&& obstacle_time > obstacle_delay[Balance_mode] - 100
+               //|| obstacle_time > obstacle_delay[Balance_mode] + 100)
+            {
+                obstacle_step = 3;
+                obstacle_time = 0;
+                tmpcnt = 0;
+                yaw = 0;
+                len = 0;
+                flag.buzz = 1;
+            }
         }
+        else if(obstacle_step == 3)
+        {
+            yaw += CarAttitudeRate.Yaw*0.02;
+            error_offset = -obstacle_turn_dir[obstacle_cnt] * run_dir
+                * obstacle_turn_k[Balance_mode];
+            dir_out = Yaw_pid_control(error_offset);
+            if(yaw > obstacle_turn_t[Balance_mode]
+               || yaw < -obstacle_turn_t[Balance_mode])
+            {
+                tmpcnt++;
+                if(tmpcnt > 5)
+                {
+                    obstacle_step = 4;
+                    obstacle_time = 0;
+                    tmpcnt = 0;
+                    yaw = 0;
+                    len = 0;
+                    flag.buzz = 1;
+                }
+            }
+        }
+        else if(obstacle_step == 4)
+        {
+            len += car_speed_now;
+            obstacle_time++;
+            dir_out = Yaw_pid_control(0);
+            if(len > 40000)
+               //&& obstacle_time < obstacle_delay_out[Balance_mode] + 100
+               //&& obstacle_time > obstacle_delay_out[Balance_mode] - 100
+               //|| obstacle_time > obstacle_delay_out[Balance_mode] + 100)
+            {
+                obstacle_step = 5;
+                obstacle_time = 0;
+                tmpcnt = 0;
+                yaw = 0;
+                len = 0;
+            }
+        }
+        else if(obstacle_step == 5)
+        {
+            yaw += CarAttitudeRate.Yaw*0.02;
+            error_offset = -obstacle_turn_dir[obstacle_cnt] * run_dir
+                * obstacle_turn_k[Balance_mode];
+            dir_out = Yaw_pid_control(error_offset);
+            if(yaw > obstacle_turn_t[Balance_mode]
+               || yaw < -obstacle_turn_t[Balance_mode])
+            {
+                tmpcnt++;
+                if(tmpcnt > 3)
+                {
+                    obstacle_step = 6;
+                    obstacle_time = 0;
+                    tmpcnt = 0;
+                    yaw = 0;
+                    len = 0;
+                }
+            }
+        }
+        else if(obstacle_step == 6)
+        {
+            len += car_speed_now;
+            obstacle_time++;
+            dir_out = Yaw_pid_control(0);
+            if(len > 23000)
+               //&&obstacle_time > obstacle_delay2[Balance_mode] - 100
+               //&& obstacle_time < obstacle_delay2[Balance_mode] + 100
+               //|| obstacle_time > obstacle_delay2[Balance_mode] + 100)
+            {
+                obstacle_step = 7;
+                obstacle_time = 0;
+                tmpcnt = 0;
+                yaw = 0;
+                len = 0;
+            }
+        }
+        else if(obstacle_step == 7)
+        {
+            yaw += CarAttitudeRate.Yaw*0.02;
+            obstacle_time++;
+            error_offset = obstacle_turn_dir[obstacle_cnt] * run_dir
+                * obstacle_turn_k[Balance_mode];
+            Dir_pid_control(E_error);
+            dir_out = Yaw_pid_control(error_offset+0.2f*pid_dir[Balance_mode].output);
+            if(yaw > obstacle_turn_t[Balance_mode]
+               || yaw < -obstacle_turn_t[Balance_mode]
+               || obstacle_time > 250)
+            {
+                tmpcnt++;
+                if(tmpcnt > 3)
+                {
+                    obstacle_step = 0;
+                    obstacle_time = 0;
+                    len = 0;
+                    yaw = 0;
+                    tmpcnt = 0;
+                    flag.obstacle = 0;
+                }
+            }
+        }
+        ftestVal[6] = yaw;
+        ftestVal[1] = len/100;
     }
+    return dir_out;
+}
+
+int DirectionControl(void)
+{
+    int dir_out = 0;
+    static int dir_out_last = 0;
+    static uint8 err = 0;
+    float E_error = 0;
+    E_error = ErrorCalculate(Balance_mode);
+    if(flag.obstacle)
+        dir_out = ObstacleClear(E_error);
     else
     {
-        obstacle_time=0;
         Dir_pid_control(E_error);
         if(Balance_mode == 1 && line_cy!=0 && line_width!=0
            && line_width < 75 && car_speed_now > 280)
             dir_out = Yaw_pid_control(k_ei*pid_dir[Balance_mode].output
                 +(1-k_ei)*pid_img[Balance_mode].output);
         else
-            //dir_out = Yaw_pid_control(pid_dir[Balance_mode].output);
-        dir_out = Yaw_pid_control(0);
+            dir_out = Yaw_pid_control(pid_dir[Balance_mode].output);
     }
     //输出限幅
     if(flag.En_dir == 0)
@@ -694,9 +855,9 @@ int DirectionControl(void)
     dir_out = limit(dir_out, (Balance_mode?600:400));
 
     dir_out = (int)(dir_out_last * 0.2f + dir_out * 0.8f);
-    //ftestVal[1] = dir_out;
+    ftestVal[0] = dir_out;
     dir_out_last = dir_out;
-    //ftestVal[0] = E_error;    ////////////////////////////
+    ftestVal[5] = obstacle_step*100;    ////////////////////////////
     //ftestVal[1] = img_err;    ////////////////////////////
     //ftestVal[2] = pid_yaw[Balance_mode].error;
 
@@ -740,7 +901,7 @@ int SpeedControl(void)
         path_length += car_speed_now/1000;
         if(myfabs(car_speed_now) > 600) spd_error++;
         else spd_error = 0;
-        if(spd_error > 50 && flag.mode != MODE_DEBUG)//速度连续不正常保护
+        if(spd_error > 50 && flag.mode == MODE_START && flag.lost == 0)//速度连续不正常保护
         {
             flag.lost = 1;
             printLog("Speed out of range");
@@ -824,11 +985,13 @@ int SpeedControl(void)
     }
     if(flag.obstacle == 3 && Balance_mode)
     {
-        if(obstacle_step == 0)
+        if(obstacle_step == 1)
             target_speed[1] = 0;
-        else if(obstacle_step == 1)
-            target_speed[1] = (int16)(dist_kp*(distance - 600));
+        else if(obstacle_step == 2)
+            target_speed[1] = (int16)(dist_kp*limit_ab(distance - 400,-250,250));
     }
+    else if(flag.obstacle == 4)
+        target_speed[Balance_mode] = 200;
 
     if(Balance_mode == 0)//直立
     {
@@ -898,7 +1061,7 @@ int SpeedControl(void)
             pid_speed[Balance_mode].preError[2] = pid_speed[Balance_mode].preError[1];
             pid_speed[Balance_mode].preError[1] = pid_speed[Balance_mode].preError[0];
             pid_speed[Balance_mode].preError[0] = pid_speed[Balance_mode].error;
-            if(flag.obstacle == 3 || myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit && time_count < 500)
+            if(flag.obstacle > 0 || myfabs(pid_speed[Balance_mode].error) > pid_speed[Balance_mode].errlimit && time_count < 500)
                 pid_speed[Balance_mode].output = target_speed[Balance_mode]
                     +0.1f*pid_speed[Balance_mode].p*pid_speed[Balance_mode].error
                         +pid_speed[Balance_mode].d*pid_speed[Balance_mode].deriv;
@@ -913,7 +1076,7 @@ int SpeedControl(void)
             }
             //---------------------------
             speed_out = pid_speed[Balance_mode].output;
-            if(speed_out - speed_out_pre > spd_acc)
+            if(speed_out - speed_out_pre > spd_acc && speed_out > 100)
                 speed_out = speed_out_pre + spd_acc;
         }
     }
@@ -930,10 +1093,12 @@ int SpeedControl(void)
     }
     speed_out = 0.5f*speed_out_pre + 0.5f*speed_out;//低通滤波
     speed_out_pre = speed_out;
-    //ftestVal[5] = car_speed_now;                /////////////////////////////////////
-    //ftestVal[4] = target_speed[Balance_mode];   /////////////////////////////////////
-    //ftestVal[2] = pid_speed[Balance_mode].integ;/////////////////////////////////////
-    //ftestVal[3] = speed_out;                    //////////////////////////
+
+    //ftestVal[1] = target_speed[Balance_mode];   /////////////////////////////////////
+    ftestVal[2] = car_speed_now;                /////////////////////////////////////
+    ftestVal[3] = pid_speed[Balance_mode].integ;/////////////////////////////////////
+    ftestVal[4] = speed_out;                    //////////////////////////
+
     return (int)speed_out;
 }
 //-----------------速度控制-以上-----------------------------
@@ -974,8 +1139,12 @@ void motor_out(int angle_out, int speed_out, int dir_out)
         else if(Balance_mode == 1)//三轮
         {
             AngleSpeedSum = angle_out+speed_out;
-            AngleSpeedSum = limit_ab(AngleSpeedSum,
-                ((flag.broken_road == 1||flag.obstacle == 3) ? -300 : 0), 800);
+            if(flag.broken_road == 1)
+                AngleSpeedSum = limit_ab(AngleSpeedSum, -250, 800);
+            else if(flag.obstacle == 3)
+                AngleSpeedSum = limit_ab(AngleSpeedSum, -350, 800);
+            else
+                AngleSpeedSum = limit_ab(AngleSpeedSum, 0, 800);
         }
     }
     if(myfabs(AngleSpeedSum/(myfabs(car_speed_now)+1)) > 50 && myabs(AngleSpeedSum)> 100 && time_count>1000) error++;
@@ -1007,8 +1176,8 @@ void motor_out(int angle_out, int speed_out, int dir_out)
         else
             R_Speed=AngleSpeedSum+dir_out;
     }
-    ftestVal[1] = L_Speed;////////////////////////////
-    ftestVal[2] = R_Speed;////////////////////////////
+    //ftestVal[1] = L_Speed;////////////////////////////
+    //ftestVal[2] = R_Speed;////////////////////////////
 
     //以下为电机正反控制，以L_Speed>0和R_Speed>0为电机正转，不作修改！！！！
     if(L_Speed>0&&L_Speed<20.0) L_Speed=20.0;       //克服电机死区电压

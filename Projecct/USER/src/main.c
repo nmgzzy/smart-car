@@ -21,7 +21,6 @@ int main(void)
     {
         servoControl();
         ObstacleDetection();
-
         if(flag.mode == MODE_DEBUG)
         {
             displayDebug();
@@ -91,7 +90,10 @@ void ObstacleDetection(void)
     if(flag.ob_detection == 0)
     {
         if(time_count == (int)(obt*500))
-        flag.obstacle = 2;
+        {
+            flag.obstacle = 2;
+            obstacle_time = 0;
+        }
     }
     else if(flag.ob_detection == 1)
     {
@@ -111,8 +113,9 @@ void ObstacleDetection(void)
             if(cnt >= obstacle_detection_cnt
                && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 80)))
             {
-                flag.obstacle = 3;
-                obstacle_step = 0;
+                flag.obstacle = 4;
+                obstacle_time = 0;
+                obstacle_step = 1;
                 t = time_count;
             }
         }
@@ -138,6 +141,7 @@ void ObstacleDetection(void)
             if(cnt >= obstacle_detection_cnt && obstacle_pix > (Balance_mode ? 30 : 80))
             {
                 flag.obstacle = 2;
+                obstacle_time = 0;
                 t = time_count;
             }
         }
@@ -163,6 +167,7 @@ void ObstacleDetection(void)
             if(cnt >= obstacle_detection_cnt  && distance < 800)
             {
                 flag.obstacle = 2;
+                obstacle_time = 0;
                 t = time_count;
             }
         }
