@@ -37,6 +37,8 @@ typedef struct{
     uint8 slow_down;
     uint8 ramp;
     uint8 ob_detection;
+    uint8 cross;
+    uint8 cross_pre;
 }Flag_t;
 
 typedef struct{

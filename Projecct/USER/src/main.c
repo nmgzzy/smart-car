@@ -9,7 +9,7 @@ uint16 distance = 0;
 uint16 servo_duty = 550;
 uint8 obstacle_pix2 = 40, obstacle_pix3 = 25;
 uint8 obstacle_detection_cnt = 2;
-float obt = 30;
+uint8 obstacle_turn_mode = 0;
 float k_servo = 0;
 
 int main(void)
@@ -56,11 +56,11 @@ void system_init(void)
 
     bt[0][0] = 0;                                bt[1][0] = 0;
     bt[0][1] = obstacle_turn_t[0];               bt[1][1] = obstacle_turn_t[1];
-    bt[0][2] = bt[0][1] + obstacle_delay[0];     bt[1][2] = bt[1][1] + obstacle_delay[1];
+    bt[0][2] = bt[0][1] + obstacle_delay1[0];    bt[1][2] = bt[1][1] + obstacle_delay1[1];
     bt[0][3] = bt[0][2] + obstacle_turn_t[0];    bt[1][3] = bt[1][2] + obstacle_turn_t[1];
-    bt[0][4] = bt[0][3] + obstacle_delay_out[0]; bt[1][4] = bt[1][3] + obstacle_delay_out[1];
+    bt[0][4] = bt[0][3] + obstacle_delay2[0];    bt[1][4] = bt[1][3] + obstacle_delay2[1];
     bt[0][5] = bt[0][4] + obstacle_turn_t[0];    bt[1][5] = bt[1][4] + obstacle_turn_t[1];
-    bt[0][6] = bt[0][5] + obstacle_delay2[0];    bt[1][6] = bt[1][5] + obstacle_delay2[1];
+    bt[0][6] = bt[0][5] + obstacle_delay3[0];    bt[1][6] = bt[1][5] + obstacle_delay3[1];
     bt[0][7] = bt[0][6] + obstacle_turn_t[0];    bt[1][7] = bt[1][6] + obstacle_turn_t[1];
 
     pit_init_ms(pit0,2)
@@ -76,8 +76,16 @@ void ObstacleDetection(void)
     static uint32 t = 0;
     if(Balance_mode == 0)
     {
-        simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//两轮
-        distance = (buf[0]<<8) | buf[1];
+        if(CarAttitude.Pitch > -12)
+        {
+            simiic_read_buf2(0xA0>>1, 0x00, IIC, buf, 2);//两轮
+            distance = (buf[0]<<8) | buf[1];
+        }
+        else
+        {
+            simiic_read_buf2(0xC0>>1, 0x00, IIC, buf, 2);//两轮
+            distance = (buf[0]<<8) | buf[1];
+        }
     }
     else if(Balance_mode == 1)
     {
@@ -87,95 +95,50 @@ void ObstacleDetection(void)
     if(distance > 1300)
         distance = 1300;
 
-    if(flag.ob_detection == 0)
+    if(((distance > 100 && distance < 900
+       && obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
+       && flag.ob_detection == 1) ||
+       (obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
+       && flag.ob_detection == 2) ||
+       (distance > 100 && distance < 900
+       && flag.ob_detection == 3))
+       && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 25 : 20)
+       && (time_count-t > 500*3 || t == 0)
+       && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
+           || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
+       && flag.obstacle < 2
+       && flag.circle < 2
+       && flag.ramp != 1
+           )
     {
-        if(time_count == (int)(obt*500))
+        cnt++;
+        flag.obstacle = 1;
+        if(cnt >= obstacle_detection_cnt
+           && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 70)))
         {
-            flag.obstacle = 2;
-            obstacle_time = 0;
-        }
-    }
-    else if(flag.ob_detection == 1)
-    {
-        if(distance > 100 && distance < 900
-           && obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
-           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
-           && (time_count-t > 500*3 || t == 0)
-           && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
-               || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
-           && flag.obstacle < 2
-           && flag.circle < 2
-           && flag.ramp != 1
-               )
-        {
-            cnt++;
-            flag.obstacle = 1;
-            if(cnt >= obstacle_detection_cnt
-               && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 80)))
+            if(obstacle_turn_mode == 0)
+            {
+                flag.obstacle = 4-Balance_mode;
+                if(car_speed_now > 250)
+                    obstacle_step = 1;
+                else
+                    obstacle_step = -1;
+            }
+            else
             {
                 flag.obstacle = 4;
-                obstacle_time = 0;
                 obstacle_step = 1;
-                t = time_count;
             }
+            obstacle_time = 0;
+            t = time_count;
+            flag.buzz = 2;///////////////////////////////
         }
-        else if(cnt > 0)
-            cnt--;
-        else if(cnt == 0 && flag.obstacle == 1)
-            flag.obstacle = 0;
     }
-    else if(flag.ob_detection == 2)
-    {
-        if(obstacle_pix > (Balance_mode?obstacle_pix3:obstacle_pix2)
-           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
-           && (time_count-t > 500*3 || t == 0)
-           && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
-               || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
-           && flag.obstacle < 2
-           && flag.circle < 2
-           && flag.ramp != 1
-               )
-        {
-            cnt++;
-            flag.obstacle = 1;
-            if(cnt >= obstacle_detection_cnt && obstacle_pix > (Balance_mode ? 30 : 80))
-            {
-                flag.obstacle = 2;
-                obstacle_time = 0;
-                t = time_count;
-            }
-        }
-        else if(cnt > 0)
-            cnt--;
-        else if(cnt == 0 && flag.obstacle == 1)
-            flag.obstacle = 0;
-    }
-    else if(flag.ob_detection == 3)
-    {
-        if(distance > 100 && distance < 900
-           && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 20 : 15)
-           && (time_count-t > 500*3 || t == 0)
-           && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
-               || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
-           && flag.obstacle < 2
-           && flag.circle < 2
-           && flag.ramp != 1
-               )
-        {
-            cnt++;
-            flag.obstacle = 1;
-            if(cnt >= obstacle_detection_cnt  && distance < 800)
-            {
-                flag.obstacle = 2;
-                obstacle_time = 0;
-                t = time_count;
-            }
-        }
-        else if(cnt > 0)
-            cnt--;
-        else if(cnt == 0 && flag.obstacle == 1)
-            flag.obstacle = 0;
-    }
+    else if(cnt > 0)
+        cnt--;
+    else if(cnt == 0 && flag.obstacle == 1)
+        flag.obstacle = 0;
+
 }
 
 void servoControl(void)
@@ -249,7 +212,6 @@ void testPWM(void)
 
 void test(void)
 {
-
 }
 
 //void remote(void)

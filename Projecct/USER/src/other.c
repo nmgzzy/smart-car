@@ -49,7 +49,7 @@ void data_read(uint8 n)
         k_x[1]    = parameter[i++] / 100.0f;
         obstacle_turn_t[0]     = parameter[i++];
         obstacle_turn_k[0]     = parameter[i++];
-        obstacle_delay_out[0]  = parameter[i++];
+        obstacle_delay2[0]  = parameter[i++];
         obstacle_turn_dir[0]   = parameter[i++];
         flag.En_std      = parameter[i++];
         flag.En_spd      = parameter[i++];
@@ -74,12 +74,12 @@ void data_read(uint8 n)
         k_hv_cin[1]      = parameter[i++]/100.0f;
         k_hv_cout[0]     = parameter[i++]/100.0f;
         k_hv_cout[1]     = parameter[i++]/100.0f;
-        obstacle_delay[0]      = parameter[i++];
-        obstacle_delay[1]      = parameter[i++];
+        obstacle_delay1[0]      = parameter[i++];
+        obstacle_delay1[1]      = parameter[i++];
         obstacle_turn_t[1]     = parameter[i++];
         //60
         obstacle_turn_k[1]     = parameter[i++];
-        obstacle_delay_out[1]  = parameter[i++];
+        obstacle_delay2[1]  = parameter[i++];
         obstacle_turn_dir[1]   = parameter[i++];
         testPar[0]      = parameter[i++]/1000.0f;
         testPar[1]      = parameter[i++]/100.0f;
@@ -125,17 +125,27 @@ void data_read(uint8 n)
         tim.slow_f      = parameter[i++];
         speed_ramp      = parameter[i++];
         speed_broken_road  = parameter[i++];
-        obstacle_delay2[0] = parameter[i++];
-        obstacle_delay2[1] = parameter[i++];
+        obstacle_delay3[0] = parameter[i++];
+        obstacle_delay3[1] = parameter[i++];
         straight_speed_add  = parameter[i++];
         obstacle_pix2       = parameter[i++];
         obstacle_pix3       = parameter[i++];
         obstacle_detection_cnt = parameter[i++];
-        obt                    = parameter[i++]/10.0f;
+        obstacle_turn_mode     = parameter[i++];
+        //110
         flag.ob_detection      = parameter[i++];
         k_servo                = parameter[i++]/10.0f;
         dist_kp                = parameter[i++]/10.0f;
-        //110
+        obstacle_yaw[0]      = parameter[i++];
+        obstacle_yaw[1]      = parameter[i++];
+        obstacle_len1[0]      = parameter[i++];
+        obstacle_len1[1]      = parameter[i++];
+        obstacle_len2[0]      = parameter[i++];
+        obstacle_len2[1]      = parameter[i++];
+        obstacle_len3[0]      = parameter[i++];
+        //120
+        obstacle_len3[1]      = parameter[i++];
+        obstacle_turn_dir[2]   = parameter[i++];
     }
 }
 
@@ -179,7 +189,7 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(k_x[1] * 100 + 0.01f);
     parameter[i++] = (int16)obstacle_turn_t[0];
     parameter[i++] = (int16)obstacle_turn_k[0];
-    parameter[i++] = (int16)obstacle_delay_out[0];
+    parameter[i++] = (int16)obstacle_delay2[0];
     parameter[i++] = (int16)obstacle_turn_dir[0];
     parameter[i++] = (int16)flag.En_std;
     parameter[i++] = (int16)flag.En_spd;
@@ -202,11 +212,11 @@ void data_save(uint8 n)
     parameter[i++] = (int16)(k_hv_cin[1] * 100 + 0.01f);
     parameter[i++] = (int16)(k_hv_cout[0] * 100 + 0.01f);
     parameter[i++] = (int16)(k_hv_cout[1] * 100 + 0.01f);
-    parameter[i++] = (int16)obstacle_delay[0];
-    parameter[i++] = (int16)obstacle_delay[1];
+    parameter[i++] = (int16)obstacle_delay1[0];
+    parameter[i++] = (int16)obstacle_delay1[1];
     parameter[i++] = (int16)obstacle_turn_t[1];
     parameter[i++] = (int16)obstacle_turn_k[1];
-    parameter[i++] = (int16)obstacle_delay_out[1];
+    parameter[i++] = (int16)obstacle_delay2[1];
     parameter[i++] = (int16)obstacle_turn_dir[1];
     parameter[i++] = (int16)(testPar[0]*1000);
     parameter[i++] = (int16)(testPar[1]*100);
@@ -248,127 +258,28 @@ void data_save(uint8 n)
     parameter[i++] = (int16)tim.slow_f;
     parameter[i++] = (int16)speed_ramp;
     parameter[i++] = (int16)speed_broken_road;
-    parameter[i++] = (int16)obstacle_delay2[0];
-    parameter[i++] = (int16)obstacle_delay2[1];
+    parameter[i++] = (int16)obstacle_delay3[0];
+    parameter[i++] = (int16)obstacle_delay3[1];
     parameter[i++] = (int16)straight_speed_add;
     parameter[i++] = (int16)obstacle_pix2;
     parameter[i++] = (int16)obstacle_pix3;
     parameter[i++] = (int16)obstacle_detection_cnt;
-    parameter[i++] = (int16)(obt*10+0.01f);
+    parameter[i++] = (int16)(obstacle_turn_mode);
     parameter[i++] = (int16)(flag.ob_detection);
     parameter[i++] = (int16)(k_servo*10 + 0.01f);
     parameter[i++] = (int16)(dist_kp*10 + 0.01f);
+    parameter[i++] = (int16)obstacle_yaw[0];
+    parameter[i++] = (int16)obstacle_yaw[1];
+    parameter[i++] = (int16)obstacle_len1[0];
+    parameter[i++] = (int16)obstacle_len1[1];
+    parameter[i++] = (int16)obstacle_len2[0];
+    parameter[i++] = (int16)obstacle_len2[1];
+    parameter[i++] = (int16)obstacle_len3[0];
+    parameter[i++] = (int16)obstacle_len3[1];
+    parameter[i++] = (int16)obstacle_turn_dir[2];
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
-
-//    for(i=0; i<NUM_OF_PARAMETER; i++)
-//        printf("%2d:%d\n",i,parameter[i]);
-
-    i=1;
-    printf("%d:%d\n", i++, set_time);
-    printf("%d:%.2f\n", i++, target_angle[0]);
-    printf("%d:%.2f\n", i++, target_angle[1]);
-    printf("%d:%d\n", i++, target_speed_max[0]);
-    printf("%d:%d\n", i++, target_speed_max[1]);
-    printf("%d:%d\n", i++, run_dir);
-    printf("%d:%.2f\n", i++, k_adc);
-    printf("%d:%d\n\n", i++, Balance_mode);
-    i=11;
-    printf("%d:%.2f\n", i++, pid_angle[0].p);
-    printf("%d:%.2f\n", i++, pid_angle[0].d);
-    printf("%d:%.2f\n", i++, pid_angle[1].p);
-    printf("%d:%.2f\n", i++, pid_angle[1].d);
-    printf("%d:%.2f\n", i++, pid_speed[0].p);
-    printf("%d:%.2f\n", i++, pid_speed[0].i);
-    printf("%d:%.2f\n", i++, pid_speed[1].p);
-    printf("%d:%.2f\n\n", i++, pid_speed[1].i);
-    i=21;
-    printf("%d:%.2f\n", i++, pid_dir_pset[0]);
-    printf("%d:%.2f\n", i++, pid_dir[0].d);
-    printf("%d:%.2f\n", i++, pid_dir_pset[1]);
-    printf("%d:%.2f\n", i++, pid_dir[1].d);
-    printf("%d:%.2f\n", i++, pid_yaw[0].p);
-    printf("%d:%.2f\n", i++, pid_yaw[0].d);
-    printf("%d:%.2f\n", i++, pid_yaw[1].p);
-    printf("%d:%.2f\n\n", i++, pid_yaw[1].d);
-    i=31;
-    printf("%d:%.2f\n", i++, pid_speed[0].d);
-    printf("%d:%.2f\n", i++, pid_speed[1].d);
-    printf("%d:%.2f\n", i++, k_hv[0]);
-    printf("%d:%.2f\n", i++, k_hv[1]);
-    printf("%d:%.2f\n", i++, k_md[0]);
-    printf("%d:%.2f\n", i++, k_md[1]);
-    printf("%d:%.2f\n", i++, k_x[0]);
-    printf("%d:%.2f\n\n", i++, k_x[1]);
-    i=41;
-    printf("%d:%d\n", i++, obstacle_turn_t[0]);
-    printf("%d:%d\n", i++, obstacle_turn_k[0]);
-    printf("%d:%d\n", i++, obstacle_delay_out[0]);
-    printf("%d:%d\n", i++, obstacle_turn_t[1]);
-    printf("%d:%d\n", i++, obstacle_turn_k[1]);
-    printf("%d:%d\n", i++, obstacle_delay_out[1]);
-    printf("%d:%d\n", i++, obstacle_turn_dir[0]);
-    printf("%d:%d\n\n", i++, obstacle_turn_dir[1]);
-    i=51;
-    printf("%d:%d\n", i++, obstacle_delay[0]);
-    printf("%d:%d\n", i++, obstacle_delay[1]);
-    printf("%d:%.2f\n", i++, k_circle[0]);
-    printf("%d:%.2f\n", i++, k_circle[1]);
-    printf("%d:%.2f\n", i++, k_circle[2]);
-    printf("%d:%d\n", i++, circle_offset[0]);
-    printf("%d:%d\n", i++, circle_offset[1]);
-    printf("%d:%d\n\n", i++, circle_offset[2]);
-    i=61;
-    printf("%d:%d\n", i++, cl_num);
-    printf("%d:%d\n", i++, cl_time);
-    printf("%d:%.2f\n", i++, k_hv_cin[0]);
-    printf("%d:%.2f\n", i++, k_hv_cin[1]);
-    printf("%d:%.2f\n", i++, k_hv_cout[0]);
-    printf("%d:%.2f\n", i++, k_hv_cout[1]);
-    printf("%d:%d\n", i++, spd_acc);
-    printf("%d:%d\n\n", i++, circle_size[0]);
-    i=71;
-    printf("%d:%d\n", i++, circle_size[1]);
-    printf("%d:%d\n", i++, circle_size[2]);
-    printf("%d:%.2f\n", i++, k_cout[0]);
-    printf("%d:%.2f\n", i++, k_cout[1]);
-    printf("%d:%.2f\n", i++, k_cout[2]);
-    printf("%d:%.2f\n", i++, k_cout_offset[0]);
-    printf("%d:%.2f\n", i++, k_cout_offset[1]);
-    printf("%d:%.2f\n\n", i++, k_cout_offset[2]);
-    i=81;
-    printf("%d:%d\n", i++, mag_threshold);
-    printf("%d:%d\n", i++, stop_time);
-    printf("%d:%d\n", i++, swich_mode);
-    printf("%d:%d\n", i++, swich);
-    printf("%d:%.2f\n", i++, pid_img[1].p);
-    printf("%d:%.2f\n", i++, pid_img[1].d);
-    printf("%d:%.2f\n", i++, k_ei);
-    printf("%d:%d\n\n", i++, servo_duty);
-    i=91;
-    printf("%d:%d\n", i++, tim.obstacle_a);
-    printf("%d:%d\n", i++, tim.obstacle_b);
-    printf("%d:%d\n", i++, tim.obstacle_c);
-    printf("%d:%d\n", i++, tim.obstacle_d);
-    printf("%d:%d\n", i++, tim.slow_a);
-    printf("%d:%d\n", i++, tim.slow_b);
-    printf("%d:%d\n", i++, tim.slow_c);
-    printf("%d:%d\n\n", i++, tim.slow_d);
-    i=101;
-    printf("%d:%d\n", i++, tim.slow_e);
-    printf("%d:%d\n", i++, tim.slow_f);
-    printf("%d:%d\n", i++, speed_ramp);
-    printf("%d:%d\n", i++, speed_broken_road);
-    printf("%d:%d\n", i++, obstacle_delay2[0]);
-    printf("%d:%d\n", i++, obstacle_delay2[1]);
-    printf("%d:%d\n", i++, straight_speed_add);
-    printf("%d:%d\n\n", i++, obstacle_detection_cnt);
-    i=111;
-    printf("%d:%d\n", i++, obstacle_pix2);
-    printf("%d:%d\n", i++, obstacle_pix3);
-    printf("%d:%.2f\n", i++, obt);
-    printf("%d:%d\n", i++, flag.ob_detection);
 }
 
 /*
@@ -391,7 +302,7 @@ void buzzer_control(void)
     else if(flag.buzz == 1)
     {
         buzzcount++;
-        if(buzzcount<=40)
+        if(buzzcount<=10)
             buzz_on();
         else
         {

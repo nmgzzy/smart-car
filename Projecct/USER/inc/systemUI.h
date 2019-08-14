@@ -2,7 +2,7 @@
 #define __SYSTEM_UI_H_
 
 #include "headfile.h"
-#define PAGE_MAX 18
+#define PAGE_MAX 20
 #define WORDS_MAX 15
 
 typedef enum {
@@ -31,13 +31,18 @@ typedef struct {
 	Line_t line[8];
 } Page_t;
 
+typedef struct {
+    uint8 last;
+    uint8 next;
+}Menutree_t;
+
 uint8 readKey(void);
 void displayUI(void);
 void displayDebug(void);
 void printLog(int8 message[20]);
 
 extern uint16 distance;
-extern float obt;
+extern uint8 obstacle_turn_mode;
 extern uint8 obstacle_pix2, obstacle_pix3, obstacle_detection_cnt ;
 
 #endif

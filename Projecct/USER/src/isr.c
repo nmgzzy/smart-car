@@ -43,7 +43,8 @@ void PIT0_IRQHandler(void)
     speed_out = SpeedControl();
     dir_out = DirectionControl();
     motor_out(angle_out, speed_out, dir_out);
-    buzzer_control();
+    if(flag.mode != MODE_PWM_TEST)
+        buzzer_control();
 
     if(time_count>500*set_time && flag.mode == MODE_START && flag.stop == 0)
     {
@@ -110,7 +111,7 @@ void DataScope_send(void)
 
 void UART5_RX_TX_IRQHandler(void)
 {
-    static uint8 br_cnt = 0;
+    static uint8 br_cnt = 0, cross_cnt = 0;
     float t;
     if(UART5->S1 & UART_S1_RDRF_MASK)                                     //接收数据寄存器满
     {
@@ -122,10 +123,10 @@ void UART5_RX_TX_IRQHandler(void)
             flag.broken_road_last = flag.broken_road;
             obstacle_pix = (uint8)(com_receive_data[0] * 0.8f + obstacle_pix * 0.2f);
             broken_road_cnt = (uint8)(com_receive_data[1] * 0.7f + broken_road_cnt * 0.3f);
+            line_cy = com_receive_data[2];
+            line_width = com_receive_data[3];
             if(Balance_mode)
             {
-                line_cy = com_receive_data[2];
-                line_width = com_receive_data[3];
                 if(line_cy != 0 && line_width != 0)
                 {
                     t = (65-line_width<0)?0:(65-line_width)/2.0f;//83//75//65
@@ -140,11 +141,23 @@ void UART5_RX_TX_IRQHandler(void)
                     img_err = 0;
                 }
             }
-            if(broken_road_cnt > 170 && flag_broken_road_cnt < 10)
+            if(line_width > 118 && cross_cnt < 4
+                && !flag.ramp && !flag.obstacle
+                && !flag.broken_road && !flag.circle)
+                cross_cnt++;
+            else if(cross_cnt > 0)
+                cross_cnt--;
+            if(cross_cnt >= 2)
+                flag.cross_pre = 1;
+            else
+                flag.cross_pre = 0;
+            if(broken_road_cnt > 200 && flag_broken_road_cnt < 10)
+                flag_broken_road_cnt+=2;
+            else if(broken_road_cnt > 170 && flag_broken_road_cnt < 10)
                 flag_broken_road_cnt++;
             else if(flag_broken_road_cnt > 0)
                 flag_broken_road_cnt--;
-            if(flag_broken_road_cnt > 3)
+            if(flag_broken_road_cnt > 5)
             {
                 flag.broken_road = 1;
             }

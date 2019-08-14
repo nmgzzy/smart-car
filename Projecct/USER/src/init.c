@@ -101,6 +101,8 @@ void pidInit(void)
     tim.slow_e = 0;
     tim.slow_f = 0;
     flag.ob_detection = 1;
+    flag.cross = 0;
+    flag.cross_pre = 0;
 }
 
 //初始化旋转编码器ftm计数

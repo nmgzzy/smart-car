@@ -318,7 +318,6 @@ void OLED_DLY_ms(uint16 ms)
 	uint16 a;
 	while(ms)
 	{
-	 	//a=16000;
         a=10000;
 	 	while(a--);
 	 	ms--;

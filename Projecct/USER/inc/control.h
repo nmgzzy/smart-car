@@ -57,7 +57,7 @@ extern float k_cout_offset[5];
 extern float target_angle[2];
 //extern float image_error[5];
 extern uint16 obstacle_turn_t[2], obstacle_turn_k[2];
-extern uint16 obstacle_delay[2], obstacle_delay2[2], obstacle_delay_out[2];
+extern uint16 obstacle_delay1[2], obstacle_delay2[2], obstacle_delay3[2];
 extern int8 obstacle_turn_dir[3];
 extern float car_speed_now, k_ei;
 extern int16 target_speed[2];
@@ -74,5 +74,9 @@ extern uint16 speed_ramp, speed_broken_road, obstacle_time;
 extern int8 straight_speed_add, obstacle_step;
 extern float speed_output, k_servo, dist_kp;
 extern uint16 bt[2][8];
+extern uint8 obstacle_yaw[2];
+extern uint8 obstacle_len1[2];
+extern uint8 obstacle_len2[2];
+extern uint8 obstacle_len3[2];
 
 #endif
