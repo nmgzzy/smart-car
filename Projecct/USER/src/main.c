@@ -124,6 +124,11 @@ void ObstacleDetection(void)
                 else
                     obstacle_step = -1;
             }
+            else if(obstacle_cnt2 == 1 && Balance_mode == 0)
+            {
+                flag.obstacle = 2;
+                obstacle_step = 1;
+            }
             else
             {
                 flag.obstacle = 4;

@@ -79,5 +79,6 @@ extern uint8 obstacle_len1[2];
 extern uint16 obstacle_len2[2];
 extern uint8 obstacle_len3[2];
 extern uint8 cross_time;
+extern uint8 obstacle_cnt2;
 
 #endif

@@ -484,14 +484,14 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 55)    adj_u8(&obstacle_pix2, 2);
     else if(flag_parameters == 56)    adj_u8(&obstacle_pix3, 1);
     ////////////////////////////11
-    else if(flag_parameters == 57)    adj_u16(&obstacle_turn_t[0], 5);
-    else if(flag_parameters == 58)    adj_u16(&obstacle_delay1[0], 5);
-    else if(flag_parameters == 59)    adj_u16(&obstacle_delay2[0], 10);
-    else if(flag_parameters == 60)    adj_u16(&obstacle_delay3[0], 5);
-    else if(flag_parameters == 61)    adj_u16(&obstacle_turn_t[1], 5);
-    else if(flag_parameters == 62)    adj_u16(&obstacle_delay1[1], 5);
-    else if(flag_parameters == 63)    adj_u16(&obstacle_delay2[1], 10);
-    else if(flag_parameters == 64)    adj_u16(&obstacle_delay3[1], 5);
+    else if(flag_parameters == 57)    adj_u16(&obstacle_turn_t[0], 1);
+    else if(flag_parameters == 58)    adj_u16(&obstacle_delay1[0], 2);
+    else if(flag_parameters == 59)    adj_u16(&obstacle_delay2[0], 2);
+    else if(flag_parameters == 60)    adj_u16(&obstacle_delay3[0], 2);
+    else if(flag_parameters == 61)    adj_u16(&obstacle_turn_t[1], 1);
+    else if(flag_parameters == 62)    adj_u16(&obstacle_delay1[1], 2);
+    else if(flag_parameters == 63)    adj_u16(&obstacle_delay2[1], 2);
+    else if(flag_parameters == 64)    adj_u16(&obstacle_delay3[1], 2);
     ////////////////////////////12
     else if(flag_parameters == 65)    adj_f(&k_servo, 0.1f);
     else if(flag_parameters == 66)    adj_f(&dist_kp, 0.1f);
@@ -557,13 +557,13 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 120)   ;
     ////////////////////////////18
     else if(flag_parameters == 121)   adj_u8(&obstacle_yaw[0], 1);
-    else if(flag_parameters == 122)   adj_u8(&obstacle_len1[0], 1);
-    else if(flag_parameters == 123)   adj_u16(&obstacle_len2[0], 1);
-    else if(flag_parameters == 124)   adj_u8(&obstacle_len3[0], 1);
+    else if(flag_parameters == 122)   adj_u8(&obstacle_len1[0], 2);
+    else if(flag_parameters == 123)   adj_u16(&obstacle_len2[0], 2);
+    else if(flag_parameters == 124)   adj_u8(&obstacle_len3[0], 2);
     else if(flag_parameters == 125)   adj_u8(&obstacle_yaw[1], 1);
-    else if(flag_parameters == 126)   adj_u8(&obstacle_len1[1], 1);
-    else if(flag_parameters == 127)   adj_u16(&obstacle_len2[1], 1);
-    else if(flag_parameters == 128)   adj_u8(&obstacle_len3[1], 1);
+    else if(flag_parameters == 126)   adj_u8(&obstacle_len1[1], 2);
+    else if(flag_parameters == 127)   adj_u16(&obstacle_len2[1], 2);
+    else if(flag_parameters == 128)   adj_u8(&obstacle_len3[1], 2);
 
 }
 
