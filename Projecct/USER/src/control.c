@@ -800,7 +800,7 @@ int ObstacleClear(float E_error)
             error_offset = -1.1*obstacle_turn_dir[obstacle_cnt] * run_dir
                 * obstacle_turn_k[Balance_mode];
             dir_out = Yaw_pid_control(error_offset);
-            if(yaw > obstacle_yaw[Balance_mode]*8
+            if(yaw > obstacle_yaw[Balance_mode]*7
                || yaw < -obstacle_yaw[Balance_mode]*8)
             {
                 tmpcnt++;
@@ -1008,11 +1008,6 @@ int SpeedControl(void)
     //停车标志
     if(flag.stop == 1)
         target_speed[Balance_mode] = 0;
-    //减速标志
-    else if(flag.slow_down == 1 || time_count > tim.slow_a*500 && time_count < tim.slow_b*500
-            || time_count > tim.slow_c*500 && time_count < tim.slow_d*500
-            || time_count > tim.slow_e*500 && time_count < tim.slow_f*500)
-        target_speed[Balance_mode] = (int16)(0.8f * target_speed_max[Balance_mode]);
     //大环加速
     else if(flag.circle == 2 && circle_size[crcl_cnt2] > 3
        && myfabs(yaw_integ) > 30 && myfabs(yaw_integ) < 200+circle_size[crcl_cnt2]*10)
@@ -1033,6 +1028,11 @@ int SpeedControl(void)
     {
         target_speed[Balance_mode] = speed_broken_road;
     }
+    //减速标志
+    else if(flag.slow_down == 1 || time_count > tim.slow_a*500 && time_count < tim.slow_b*500
+            || time_count > tim.slow_c*500 && time_count < tim.slow_d*500
+            || time_count > tim.slow_e*500 && time_count < tim.slow_f*500)
+        target_speed[Balance_mode] = (int16)(0.8f * target_speed_max[Balance_mode]);
     //直道加速
     else if(Balance_mode == 1 && line_cy!=0 && line_width!=0
         && line_width < 75 && myfabs(pid_img[Balance_mode].error) < 25
@@ -1043,7 +1043,7 @@ int SpeedControl(void)
             if(straight_cnt < 310)
                 straight_cnt++;
             if(straight_cnt < 200)
-                target_speed[Balance_mode] = (int16)(1.1f * target_speed_max[Balance_mode]+straight_speed_add);
+                target_speed[Balance_mode] = (int16)(1.08f * target_speed_max[Balance_mode]+straight_speed_add);
             else if(straight_cnt < 300)
                 target_speed[Balance_mode] = (int16)(1.03f * target_speed_max[Balance_mode]+straight_speed_add);
         }
@@ -1110,7 +1110,7 @@ int SpeedControl(void)
         {
             if(flag.obstacle == 2 || flag.obstacle == 4)
             {
-                target_speed[Balance_mode] = 270;
+                target_speed[Balance_mode] = 250;
                 pid_speed[Balance_mode].p = 1.1f * pid_spd_set[0];
             }
             if(pid_angle[Balance_mode].error > 10)

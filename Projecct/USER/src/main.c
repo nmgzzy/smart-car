@@ -116,9 +116,9 @@ void ObstacleDetection(void)
         if(cnt >= obstacle_detection_cnt
            && (distance < 800 || obstacle_pix > (Balance_mode ? 30 : 70)))
         {
-            if(obstacle_turn_mode == 0)
+            if(obstacle_turn_mode == 0 && Balance_mode)
             {
-                flag.obstacle = 4-Balance_mode;
+                flag.obstacle = 3;
                 if(car_speed_now > 250)
                     obstacle_step = 1;
                 else
