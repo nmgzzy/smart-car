@@ -103,7 +103,7 @@ void ObstacleDetection(void)
        (distance > 100 && distance < 900
        && flag.ob_detection == 3))
        && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 25 : 20)
-       && (time_count-t > 500*3 || t == 0)
+       && (time_count-t > 500*2 || t == 0)
        && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
            || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
        && flag.obstacle < 2
@@ -149,7 +149,7 @@ void servoControl(void)
     {
         if(flag.ramp > 0)
             speed_output = -5;
-        servo = limit_ab((int)(servo_duty-k_servo*0.01f*speed_output), 470, 555);
+        servo = limit_ab((int)(servo_duty-k_servo*0.01f*speed_output), 470, 560);
         if(servo - servo_last > 20) servo = servo_last + 20;
         else if(servo - servo_last < -20) servo = servo_last - 20;
         ftm_pwm_duty(SERVO_FTM, SERVO_CH, servo);
@@ -157,7 +157,7 @@ void servoControl(void)
     }
     else
     {
-        ftm_pwm_duty(SERVO_FTM, SERVO_CH, 235);
+        ftm_pwm_duty(SERVO_FTM, SERVO_CH, 228);
     }
 }
 

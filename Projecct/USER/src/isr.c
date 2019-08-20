@@ -130,7 +130,7 @@ void UART5_RX_TX_IRQHandler(void)
                 if(line_cy != 0 && line_width != 0)
                 {
                     t = (65-line_width<0)?0:(65-line_width)/2.0f;//83//75//65
-                    img_err = 0.3f*img_err+0.7f*((56-line_cy>0)?56.0-line_cy+t:56.0-line_cy-t);
+                    img_err = 0.3f*img_err+0.7f*((59-line_cy>0)?59.0-line_cy+t:59.0-line_cy-t);
                     pid_img[Balance_mode].error = img_err;
                     pid_img[Balance_mode].deriv = pid_img[Balance_mode].error - pid_img[Balance_mode].preError[0];
                     pid_img[Balance_mode].preError[0] = pid_img[Balance_mode].error;
@@ -141,9 +141,10 @@ void UART5_RX_TX_IRQHandler(void)
                     img_err = 0;
                 }
             }
+            //-----------cross-------------------
             if(line_width > 118 && cross_cnt < 4
                 && !flag.ramp && !flag.obstacle
-                && !flag.broken_road && !flag.circle)
+                && !flag.broken_road && flag.circle!=1 && flag.circle != 2)
                 cross_cnt++;
             else if(cross_cnt > 0)
                 cross_cnt--;
@@ -151,6 +152,7 @@ void UART5_RX_TX_IRQHandler(void)
                 flag.cross_pre = 1;
             else
                 flag.cross_pre = 0;
+            //-----------broken road-------------------
             if(broken_road_cnt > 200 && flag_broken_road_cnt < 10)
                 flag_broken_road_cnt+=2;
             else if(broken_road_cnt > 170 && flag_broken_road_cnt < 10)
@@ -160,9 +162,11 @@ void UART5_RX_TX_IRQHandler(void)
             if(flag_broken_road_cnt > 5)
             {
                 flag.broken_road = 1;
+                flag.buzz = 5;
             }
             else
                 flag.broken_road = 0;
+
             if(swich)
             {
                 if(flag.broken_road == 1 && flag.broken_road_last == 0

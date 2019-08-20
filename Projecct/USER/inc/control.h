@@ -76,7 +76,8 @@ extern float speed_output, k_servo, dist_kp;
 extern uint16 bt[2][8];
 extern uint8 obstacle_yaw[2];
 extern uint8 obstacle_len1[2];
-extern uint8 obstacle_len2[2];
+extern uint16 obstacle_len2[2];
 extern uint8 obstacle_len3[2];
+extern uint8 cross_time;
 
 #endif

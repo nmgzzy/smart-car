@@ -17,40 +17,41 @@
 static uint16 voltage = 0;
 static uint8 flag_updown=0;
 static int8 flag_plus_minus=0;
+static uint8 flag_print = 0;
 
 
 //更新屏幕
-static void print_menu(uint8 page, uint8 choice)
+static void print_menu(uint8 page, uint8 choice, uint8 print)
 {
     Page_t menu[PAGE_MAX] =
     {
         //page0-select param
         {
             "y0 high",0,
-            "y1 mid",0,
-            "y2",0,
-            "y3",0,
-            "n0",0,
-            "n1",0,
-            "n2",0,
-            "n3",0
+            "y1 mid ",0,
+            "y2     ",0,
+            "y3     ",0,
+            "n0     ",0,
+            "n1     ",0,
+            "n2     ",0,
+            "n3     ",0
         },
         //page1-main
         {
-            "GO!!!",0,
-            "set",0,
-            "show",0,
+            "GO!!!  ",0,
+            "set    ",0,
+            "show   ",0,
             "pCommon",0,
             "pCircle",0,
             "pObstacle",0,
-            "pPID",0,
-            "pTime",0
+            "pPID   ",0,
+            "pTime  ",0
         },
         //page2-set
         {
-            "6s",0,
-            "17s",0,
-            "50s",0,
+            "6s     ",0,
+            "30s    ",0,
+            "50s    ",0,
             "Debug mode",0,
             "flag_std",0,
             "flag_spd",0,
@@ -59,14 +60,14 @@ static void print_menu(uint8 page, uint8 choice)
         },
         //page3-show
         {
-            "",0,
-            "",0,
-            "",0,
-            "",0,
-            "",0,
-            "",0,
-            "",0,
-            "",0
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0,
+            "       ",0
         },
         //page4-common1
         {
@@ -75,40 +76,40 @@ static void print_menu(uint8 page, uint8 choice)
             "BalanceMode", Balance_mode,
             "tarSpd2",target_speed_max[0],
             "tarSpd 3",target_speed_max[1],
-            "k_adc",k_adc,
+            "k_adc  ",k_adc,
             "swich_mode",swich_mode,
-            "swich",swich
+            "swich  ",swich
         },
         //page5-common2
         {
             "stop time",stop_time,
             "spd acc",spd_acc,
             "spd ramp",speed_ramp,
-            "spd br",speed_broken_road,
+            "spd br ",speed_broken_road,
             "spd strt",straight_speed_add,
             "tarAng2",target_angle[0],
             "tarAng 3",target_angle[1],
-            "magTh",mag_threshold
+            "magTh  ",mag_threshold
         },
         //page6-common3
         {
-            "servo",servo_duty,
+            "servo  ",servo_duty,
+            "cross tim",cross_time,
             "       ",0,
             "       ",0,
             "       ",0,
-            "       ",0,
-            "t0",testPar[0],
-            "t1",testPar[1],
-            "t2",testPar[2]
+            "t0     ",testPar[0],
+            "t1     ",testPar[1],
+            "t2     ",testPar[2]
         },
 
         //page7-circle1
         {
-            "cl num",cl_num,
+            "cl num ",cl_num,
             "cl size1",circle_size[0],
             "cl size2",circle_size[1],
             "cl size3",circle_size[2],
-            "kHcin2",k_hv_cin[0],
+            "kHcin2 ",k_hv_cin[0],
             "kHcin 3",k_hv_cin[1],
             "       ",0,
             "       ",0
@@ -116,9 +117,9 @@ static void print_menu(uint8 page, uint8 choice)
         },
         //page8-circle2
         {
-            "k_cin1",k_circle[0],
-            "k_cin2",k_circle[1],
-            "k_cin3",k_circle[2],
+            "k_cin1 ",k_circle[0],
+            "k_cin2 ",k_circle[1],
+            "k_cin3 ",k_circle[2],
             "cin off1",circle_offset[0],
             "cin off2",circle_offset[1],
             "cin off3",circle_offset[2],
@@ -141,19 +142,19 @@ static void print_menu(uint8 page, uint8 choice)
             "2cam 3tof",flag.ob_detection,//检测方式
             "obdir1 +L-R",obstacle_turn_dir[0],
             "obdir2 +L-R",obstacle_turn_dir[1],
-            "ob_k2",obstacle_turn_k[0],
-            "ob_k 3",obstacle_turn_k[1],
+            "ob_k2  ",obstacle_turn_k[0],
+            "ob_k 3 ",obstacle_turn_k[1],
             "ob_dec_cnt",obstacle_detection_cnt,//检测次数
             "ob_pix2",obstacle_pix2,//检测阈值
             "ob_pix3",obstacle_pix3,//检测阈值
         },
         //page11-obstacle2
         {
-            "ob t2",obstacle_turn_t[0],
+            "ob t2  ",obstacle_turn_t[0],
             "ob dly1 2",obstacle_delay1[0],
             "ob dly2 2",obstacle_delay2[0],
             "ob dly3 2",obstacle_delay3[0],
-            "ob t 3",obstacle_turn_t[1],
+            "ob t 3 ",obstacle_turn_t[1],
             "ob dly1 3",obstacle_delay1[1],
             "ob dly2 3",obstacle_delay2[1],
             "ob dly3 3",obstacle_delay3[1]
@@ -171,42 +172,42 @@ static void print_menu(uint8 page, uint8 choice)
         },
         //page13-pid1
         {
-            "dirKp2",pid_dir_pset[0],
-            "dirKd2",pid_dir[0].d,
+            "dirKp2 ",pid_dir_pset[0],
+            "dirKd2 ",pid_dir[0].d,
             "dirKp 3",pid_dir_pset[1],
             "dirKd 3",pid_dir[1].d,
-            "spdKp2",pid_speed[0].p,
-            "spdKi2",pid_speed[0].i,
+            "spdKp2 ",pid_speed[0].p,
+            "spdKi2 ",pid_speed[0].i,
             "spdKp 3",pid_speed[1].p,
             "spdKi 3",pid_speed[1].i
         },
         //page14-pid2
         {
-            "spdKd2",pid_speed[0].d,
+            "spdKd2 ",pid_speed[0].d,
             "spdKd 3",pid_speed[1].d,
-            "k_hv2",k_hv[0],
-            "k_hv 3",k_hv[1],
-            "k_md2",k_md[0],
-            "k_md 3",k_md[1],
-            "k_x2",k_x[0],
-            "k_x 3",k_x[1]
+            "k_hv2  ",k_hv[0],
+            "k_hv 3 ",k_hv[1],
+            "k_md2  ",k_md[0],
+            "k_md 3 ",k_md[1],
+            "k_x2   ",k_x[0],
+            "k_x 3  ",k_x[1]
         },
         //page15-pid3
         {
-            "angKp2",pid_angle[0].p,
-            "angKd2",pid_angle[0].d,
+            "angKp2 ",pid_angle[0].p,
+            "angKd2 ",pid_angle[0].d,
             "angKp 3",pid_angle[1].p,
             "angKd 3",pid_angle[1].d,
-            "yawKp2",pid_yaw[0].p,
-            "yawKd2",pid_yaw[0].d,
+            "yawKp2 ",pid_yaw[0].p,
+            "yawKd2 ",pid_yaw[0].d,
             "yawKp 3",pid_yaw[1].p,
             "yawKd 3",pid_yaw[1].d
         },
         //page16-pid4
         {
-            "img.kp",pid_img[1].p,
-            "img.kd",pid_img[1].d,
-            "k ei",k_ei,
+            "img.kp ",pid_img[1].p,
+            "img.kd ",pid_img[1].d,
+            "k ei   ",k_ei,
             "       ",0,
             "       ",0,
             "       ",0,
@@ -316,6 +317,16 @@ static void print_menu(uint8 page, uint8 choice)
             break;
     }
     last_page = page;
+    if(print && flag_print==0)
+    {
+        flag_print = 1;
+        for(uint8 j = 4; j < PAGE_MAX; j++)
+        {
+            printf("\npage%d:\n",j);
+            for(i=0; i<8; i++)
+                printf("%s:\t%g\n",menu[j].line[i].name,menu[j].line[i].data);
+        }
+    }
 }
 
 //读取五向开关
@@ -429,7 +440,7 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 16)    adj_u16(&mag_threshold, 20);
     ////////////////////////////6
     else if(flag_parameters == 17)    adj_u16(&servo_duty, 5);
-    else if(flag_parameters == 18)    ;
+    else if(flag_parameters == 18)    adj_u8(&cross_time,5);
     else if(flag_parameters == 19)    ;
     else if(flag_parameters == 20)    ;
     else if(flag_parameters == 21)    ;
@@ -446,9 +457,9 @@ static void adj_parameter(uint8 flag_parameters)
     else if(flag_parameters == 31)    ;
     else if(flag_parameters == 32)    ;
     ////////////////////////////8
-    else if(flag_parameters == 33)    adj_f(&k_circle[0], 0.05);
-    else if(flag_parameters == 34)    adj_f(&k_circle[1], 0.05);
-    else if(flag_parameters == 35)    adj_f(&k_circle[2], 0.05);
+    else if(flag_parameters == 33)    adj_f(&k_circle[0], 0.02);
+    else if(flag_parameters == 34)    adj_f(&k_circle[1], 0.02);
+    else if(flag_parameters == 35)    adj_f(&k_circle[2], 0.02);
     else if(flag_parameters == 36)    adj_i16(&circle_offset[0], 1);
     else if(flag_parameters == 37)    adj_i16(&circle_offset[1], 1);
     else if(flag_parameters == 38)    adj_i16(&circle_offset[2], 1);
@@ -547,11 +558,11 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////18
     else if(flag_parameters == 121)   adj_u8(&obstacle_yaw[0], 1);
     else if(flag_parameters == 122)   adj_u8(&obstacle_len1[0], 1);
-    else if(flag_parameters == 123)   adj_u8(&obstacle_len2[0], 1);
+    else if(flag_parameters == 123)   adj_u16(&obstacle_len2[0], 1);
     else if(flag_parameters == 124)   adj_u8(&obstacle_len3[0], 1);
     else if(flag_parameters == 125)   adj_u8(&obstacle_yaw[1], 1);
     else if(flag_parameters == 126)   adj_u8(&obstacle_len1[1], 1);
-    else if(flag_parameters == 127)   adj_u8(&obstacle_len2[1], 1);
+    else if(flag_parameters == 127)   adj_u16(&obstacle_len2[1], 1);
     else if(flag_parameters == 128)   adj_u8(&obstacle_len3[1], 1);
 
 }
@@ -609,7 +620,7 @@ void displayUI(void)
                 }
                 else if(choice == 1)
                 {
-                    if(page != tree[page].last)
+                    if(page != tree[page].last && tree[page].last != 1)
                     {
                         page = tree[page].last;
                         choice = 8;
@@ -661,22 +672,27 @@ void displayUI(void)
         //-----右键--------------------------------------
         else if(key == 4)
         {
-            if(page == 1)
-            {
-                switch(choice)
-                {
-                case 1: ; break;
-                case 2:page = 2; break;
-                case 3:page = 3; break;
-                case 4:page = 4; break;
-                case 5:page = 7; break;
-                case 6:page = 10; break;
-                case 7:page = 13; break;
-                case 8:page = 17; break;
-                }
-            }
+            if(flag_updown)
+                flag_updown = 0;
             else
-                page = tree[page].next;
+            {
+                if(page == 1)
+                {
+                    switch(choice)
+                    {
+                    case 1: ; break;
+                    case 2:page = 2; break;
+                    case 3:page = 3; break;
+                    case 4:page = 4; break;
+                    case 5:page = 7; break;
+                    case 6:page = 10; break;
+                    case 7:page = 13; break;
+                    case 8:page = 17; break;
+                    }
+                }
+                else
+                    page = tree[page].next;
+            }
         }
         //-----按下--------------------------------------
         else if(key == 5)
@@ -707,7 +723,7 @@ void displayUI(void)
                 switch(choice)
                 {
                     case 1:set_time = 6;break;
-                    case 2:set_time = 17;break;
+                    case 2:set_time = 30;break;
                     case 3:set_time = 50;break;
                     case 4:flag.mode = MODE_DEBUG; break;
                     case 5:flag.En_std = flag.En_std?0:1;break;
@@ -722,7 +738,7 @@ void displayUI(void)
                 flag_parameters = choice+(page-4)*8;
             }
         }
-        print_menu(page, choice);
+        print_menu(page, choice, page);
         adj_parameter(flag_parameters);
         t=pit_get_us(pit2);
         if(t<10000)
@@ -777,7 +793,7 @@ void displayDebug(void)
     sprintf(buff, "spd:%3d Wd:%d ", (int)car_speed_now, line_width);
     OLED_P6x8Str(0, 5, (uint8*)buff);
     t = (65-line_width<0)?0:(65-line_width)/2;
-    sprintf(buff, "dis:%3d imgerr:%d ", distance/10, -((line_cy-56<0)?line_cy-56-t:line_cy-56+t));
+    sprintf(buff, "dis:%3d imgerr:%d ", distance/10, -((line_cy-56<0)?line_cy-59-t:line_cy-59+t));
     OLED_P6x8Str(0, 6, (uint8*)buff);
     sprintf(buff, "Err:%3.1f Cy:%d ", pid_dir[Balance_mode].error, 56-line_cy);
     OLED_P6x8Str(0, 7, (uint8*)buff);

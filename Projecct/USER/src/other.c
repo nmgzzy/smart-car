@@ -146,6 +146,7 @@ void data_read(uint8 n)
         //120
         obstacle_len3[1]      = parameter[i++];
         obstacle_turn_dir[2]   = parameter[i++];
+        cross_time             = parameter[i++];
     }
 }
 
@@ -277,6 +278,7 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_len3[0];
     parameter[i++] = (int16)obstacle_len3[1];
     parameter[i++] = (int16)obstacle_turn_dir[2];
+    parameter[i++] = (int16)cross_time;
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);
@@ -302,7 +304,7 @@ void buzzer_control(void)
     else if(flag.buzz == 1)
     {
         buzzcount++;
-        if(buzzcount<=10)
+        if(buzzcount<=40)
             buzz_on();
         else
         {
@@ -369,6 +371,18 @@ void buzzer_control(void)
         }
     }
     else if(flag.buzz == 6)
+    {
+        buzzcount++;
+        if(buzzcount<=10)
+            buzz_on();
+        else
+        {
+            buzz_off();
+            buzzcount = 0;
+            flag.buzz = 0;
+        }
+    }
+    else if(flag.buzz == 7)
     {
         buzz_on();
         buzzcount=0;
