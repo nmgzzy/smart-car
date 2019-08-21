@@ -6,11 +6,11 @@ void servoControl(void);
 void ObstacleDetection(void);
 
 uint16 distance = 0;
-uint16 servo_duty = 550;
-uint8 obstacle_pix2 = 40, obstacle_pix3 = 25;
+uint16 servo_duty = 545;
+uint8 obstacle_pix2 = 50, obstacle_pix3 = 18;
 uint8 obstacle_detection_cnt = 2;
 uint8 obstacle_turn_mode = 0;
-float k_servo = 0;
+float k_servo = 4;
 
 int main(void)
 {
@@ -103,7 +103,7 @@ void ObstacleDetection(void)
        (distance > 100 && distance < 900
        && flag.ob_detection == 3))
        && myfabs(pid_dir[Balance_mode].error) < (Balance_mode ? 25 : 20)
-       && (time_count-t > 500*2 || t == 0)
+       && (time_count-t > 500 || t == 0)
        && (time_count > tim.obstacle_a*500 && time_count < tim.obstacle_b*500
            || time_count > tim.obstacle_c*500 && time_count < tim.obstacle_d*500)//区间检测
        && flag.obstacle < 2
@@ -136,7 +136,7 @@ void ObstacleDetection(void)
             }
             obstacle_time = 0;
             t = time_count;
-            flag.buzz = 2;///////////////////////////////
+            flag.buzz = 3;///////////////////////////////
         }
     }
     else if(cnt > 0)

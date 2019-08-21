@@ -6,7 +6,7 @@
 EulerAngleTypedef      CarAttitude;            /////姿态角
 EulerAngleTypedef      CarAttitudeRate;        /////姿态角速度
 float AccZAngle = 0;
-float target_angle[2] = {-2, -21};
+float target_angle[2] = {-3, -21};
 uint16 mag_threshold = 1550;
 uint8 stop_time = 10;
 
@@ -232,16 +232,16 @@ int BalanceControl(void)
 //----------------方向控制---------------------
 uint16 ad_data_now[NUM_OF_AD] = {0};
 
-float k_hv[2] = {6.5, 4};//横竖电感差比例
-float k_x[2] = {0, 0.5};//横竖电感差比例
+float k_hv[2] = {5, 4};//横竖电感差比例
+float k_x[2] = {0, 0.5};//斜电感差比例
 float k_hv_cin[2] = {3, 2};//进环横竖电感差比例
 float k_hv_cout[2] = {9, 6};//出环横竖电感差比例
-float k_md[2] = {0.3, 0.4};//中间电感比例
+float k_md[2] = {0.3, 0.5};//中间电感比例
 float k_adc = 1.0f;
 float k_ei = 1;
 
 float k_circle[5] = {1,1,1,1,1};//入环系数
-int16 circle_offset[5] = {25,-20,20,20,20};//入环偏差
+int16 circle_offset[5] = {20,20,20,20,20};//入环偏差
 float k_cout[5] = {1.0, 1.0, 1.0, 1.0, 1.0};//出环偏差系数
 float k_cout_offset[5] = {1.0, 1.0, 1.0, 1.0, 1};//出环系数
 uint8 circle_size[5] = {1,1,5,3,3};//出环偏差
@@ -255,7 +255,7 @@ int8 circle_dir = 0;
 float yaw_integ = 0;
 uint8 cross_time = 180;
 
-float dist_kp = 1;
+float dist_kp = 0.6;
 
 void ADC_get(void)
 {
@@ -586,20 +586,20 @@ int Yaw_pid_control(float Error)
 
 
 uint16 obstacle_time = 0;
-uint16 obstacle_turn_t[2] = {70,80};
-uint16 obstacle_turn_k[2] = {400,500};
-uint16 obstacle_delay1[2]  = {70,60};
-uint16 obstacle_delay2[2] = {10,100};
-uint16 obstacle_delay3[2] = {50,10};
+uint16 obstacle_turn_t[2] = {50,80};
+uint16 obstacle_turn_k[2] = {500,540};
+uint16 obstacle_delay1[2]  = {94,60};
+uint16 obstacle_delay2[2] = {70,100};
+uint16 obstacle_delay3[2] = {90,10};
 int8 obstacle_turn_dir[3] = {1,1,1};
 uint16 bt[2][8];
 uint8 obstacle_cnt = 0;
 uint8 obstacle_cnt2 = 0;
 int8 obstacle_step = 0;
-uint8 obstacle_yaw[2] = {50,50};
-uint8 obstacle_len1[2] = {125,125};
-uint16 obstacle_len2[2] = {150,150};
-uint8 obstacle_len3[2] = {115,115};
+uint8 obstacle_yaw[2] = {50,53};
+uint8 obstacle_len1[2] = {48,94};
+uint16 obstacle_len2[2] = {70,74};
+uint8 obstacle_len3[2] = {46,90};
 uint16 disTh = 450;
 
 int ObstacleClear(float E_error)
@@ -1043,12 +1043,12 @@ int DirectionControl(void)
 
 
 //---------------速度控制-------------------------
-int16 target_speed[2] = {305, 310}, target_speed_max[2] = {305, 310};
+int16 target_speed[2] = {305, 320}, target_speed_max[2] = {305, 320};
 uint16 spd_acc = 9;
 float speed_k_limit = 1, car_speed_now = 0;
 double path_length = 0;
 uint8 swich_mode = 1;
-uint16 speed_ramp = 230, speed_broken_road = 260;
+uint16 speed_ramp = 270, speed_broken_road = 280;
 int8 straight_speed_add = 0;
 float speed_output = 0;
 
