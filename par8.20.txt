@@ -1,0 +1,160 @@
+
+page4:
+setTime:	32
+run dir:	-1
+BalanceMode:	0
+tarSpd2:	310
+tarSpd 3:	320
+k_adc  :	0.97
+swich_mode:	1
+swich  :	1
+
+page5:
+stop time:	10
+spd acc:	30
+spd ramp:	270
+spd br :	280
+spd strt:	0
+tarAng2:	-3
+tarAng 3:	-21
+magTh  :	1550
+
+page6:
+servo  :	545
+cross tim:	180
+       :	0
+       :	0
+       :	0
+t0     :	0
+t1     :	0.03
+t2     :	25
+
+page7:
+cl num :	3
+cl size1:	3
+cl size2:	1
+cl size3:	2
+kHcin2 :	3
+kHcin 3:	2
+       :	0
+       :	0
+
+page8:
+k_cin1 :	1
+k_cin2 :	1
+k_cin3 :	1
+cin off1:	20
+cin off2:	18
+cin off3:	16
+       :	0
+       :	0
+
+page9:
+k_cout1:	1
+k_cout2:	1
+k_cout3:	1
+cout off1:	1
+cout off2:	1
+cout off3:	1
+       :	0
+       :	0
+
+page10:
+2cam 3tof:	1
+obdir1 +L-R:	-1
+obdir2 +L-R:	1
+ob_k2  :	500
+ob_k 3 :	530
+ob_dec_cnt:	2
+ob_pix2:	50
+ob_pix3:	18
+
+page11:
+ob t2  :	70
+ob dly1 2:	70
+ob dly2 2:	20
+ob dly3 2:	50
+ob t 3 :	300
+ob dly1 3:	50
+ob dly2 3:	110
+ob dly3 3:	10
+
+page12:
+k_servo:	4
+dist_kp:	0.6
+ob tn_mod:	0
+obdir3 +L-R:	1
+       :	0
+       :	0
+       :	0
+       :	0
+
+page13:
+dirKp2 :	15
+dirKd2 :	22
+dirKp 3:	26.5
+dirKd 3:	43
+spdKp2 :	13.2
+spdKi2 :	1.2
+spdKp 3:	30
+spdKi 3:	0.6
+
+page14:
+spdKd2 :	0.01
+spdKd 3:	1
+k_hv2  :	5
+k_hv 3 :	4
+k_md2  :	0.3
+k_md 3 :	0.5
+k_x2   :	0
+k_x 3  :	0.5
+
+page15:
+angKp2 :	125
+angKd2 :	3.5
+angKp 3:	15
+angKd 3:	11
+yawKp2 :	2.7
+yawKd2 :	2
+yawKp 3:	3
+yawKd 3:	2.2
+
+page16:
+img.kp :	13
+img.kd :	6.5
+k ei   :	1
+       :	0
+       :	0
+       :	0
+       :	0
+       :	0
+
+page17:
+tim.ob_a:	3
+tim.ob_b:	10
+tim.ob_c:	15
+tim.ob_d:	40
+tim.slow_a:	13
+tim.slow_b:	16
+tim.slow_c:	0
+tim.slow_d:	0
+
+page18:
+tim.slow_e:	0
+tim.slow_f:	0
+       :	0
+       :	0
+       :	0
+       :	0
+       :	0
+       :	0
+
+page19:
+ob_yaw 2:	45
+ob_len1 2:	37
+ob_len2 2:	45
+ob_len3 2:	50
+ob_yaw 3:	50
+ob_len1 3:	92
+ob_len2 3:	74
+ob_len3 3:	90

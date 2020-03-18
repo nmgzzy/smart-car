@@ -11,6 +11,7 @@ uint16 mag_threshold = 1550;
 uint8 stop_time = 10;
 
 uint8 Balance_mode = 0; //0-直立 1-三轮
+uint16 ramp_time_down2 = 350;
 
 void RampDetection(uint8 cnt)
 {
@@ -104,7 +105,7 @@ void RampDetection(uint8 cnt)
         else if(flag.ramp == 2)
         {
             ramp_timecnt++;
-            if(ramp_timecnt > 350)
+            if(ramp_timecnt > ramp_time_down2)
             {
                 ramp_timecnt = 0;
                 flag.ramp = 0;
@@ -1300,6 +1301,8 @@ int SpeedControl(void)
 }
 //-----------------速度控制-以上-----------------------------
 
+uint16 ramp_speed_limit = 300;
+
 //----------------电机输出--以下不必大改-----------------------
 void motor_out(int angle_out, int speed_out, int dir_out)
 {
@@ -1329,7 +1332,7 @@ void motor_out(int angle_out, int speed_out, int dir_out)
             if(flag.ramp == 1)
                 AngleSpeedSum = limit_ab(AngleSpeedSum, 0, 900);
             else if(flag.ramp == 2)
-                AngleSpeedSum = limit_ab(AngleSpeedSum, -100, 300);
+                AngleSpeedSum = limit_ab(AngleSpeedSum, -100, ramp_speed_limit);
             else
                 AngleSpeedSum = limit_ab(AngleSpeedSum, -700, 900);
         }

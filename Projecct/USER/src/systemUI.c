@@ -95,8 +95,8 @@ static void print_menu(uint8 page, uint8 choice, uint8 print)
         {
             "servo  ",servo_duty,
             "cross tim",cross_time,
-            "       ",0,
-            "       ",0,
+            "rmp_spd_lim",ramp_speed_limit,
+            "rmp_tim_d2",ramp_time_down2,
             "       ",0,
             "t0     ",testPar[0],
             "t1     ",testPar[1],
@@ -441,8 +441,8 @@ static void adj_parameter(uint8 flag_parameters)
     ////////////////////////////6
     else if(flag_parameters == 17)    adj_u16(&servo_duty, 5);
     else if(flag_parameters == 18)    adj_u8(&cross_time,5);
-    else if(flag_parameters == 19)    ;
-    else if(flag_parameters == 20)    ;
+    else if(flag_parameters == 19)    adj_u16(&ramp_speed_limit,10);
+    else if(flag_parameters == 20)    adj_u16(&ramp_time_down2,10);
     else if(flag_parameters == 21)    ;
     else if(flag_parameters == 22)    adj_f(&testPar[0], 0.1f);
     else if(flag_parameters == 23)    adj_f(&testPar[1], 0.1f);

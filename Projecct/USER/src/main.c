@@ -53,16 +53,6 @@ void system_init(void)
     ADC_init();
     communicate_init();
     displayUI();
-
-    bt[0][0] = 0;                                bt[1][0] = 0;
-    bt[0][1] = obstacle_turn_t[0];               bt[1][1] = obstacle_turn_t[1];
-    bt[0][2] = bt[0][1] + obstacle_delay1[0];    bt[1][2] = bt[1][1] + obstacle_delay1[1];
-    bt[0][3] = bt[0][2] + obstacle_turn_t[0];    bt[1][3] = bt[1][2] + obstacle_turn_t[1];
-    bt[0][4] = bt[0][3] + obstacle_delay2[0];    bt[1][4] = bt[1][3] + obstacle_delay2[1];
-    bt[0][5] = bt[0][4] + obstacle_turn_t[0];    bt[1][5] = bt[1][4] + obstacle_turn_t[1];
-    bt[0][6] = bt[0][5] + obstacle_delay3[0];    bt[1][6] = bt[1][5] + obstacle_delay3[1];
-    bt[0][7] = bt[0][6] + obstacle_turn_t[0];    bt[1][7] = bt[1][6] + obstacle_turn_t[1];
-
     pit_init_ms(pit0,2)
     set_irq_priority(PIT0_IRQn,1);
     enable_irq(PIT0_IRQn);
@@ -218,88 +208,3 @@ void testPWM(void)
 void test(void)
 {
 }
-
-//void remote(void)
-//{
-//    uint8 ch = 0;
-//    int16 ll,rr;
-//    uart_getchar(DEBUG_UART, &ch);
-//    ll=0;rr=0;
-//    if(ch&0x01 == 1)
-//    {
-//        rr-=120;
-//        ll+=120;
-//    }
-//    if(ch>>1&0x01 == 1)
-//    {
-//        rr-=200;
-//        ll-=200;
-//    }
-//    if(ch>>2&0x01 == 1)
-//    {
-//        rr+=120;
-//        ll-=120;
-//    }
-//    if(ch>>3&0x01 == 1)
-//    {
-//        ll+=300;
-//        rr+=300;
-//    }
-//    if(ch>>4 > 0)
-//    {
-//        ll=0;
-//        rr=0;
-//    }
-//    ll=(int16)(ll*1.3f);
-//    if(ll>0)
-//    {
-//        if(ll>500)
-//            ll = 500;
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LP,(int)ll);
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LN,0);
-//    }
-//    else
-//    {
-//        ll = -ll;
-//        if(ll>500)
-//            ll = 500;
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LN,(int)ll);
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_LP,0);
-//    }
-//    if(rr>0)
-//    {
-//        if(rr>500)
-//            rr = 500;
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RP,(int)rr);
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RN,0);
-//    }
-//    else
-//    {
-//        rr = -rr;
-//        if(rr>500)
-//            rr = 500;
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RN,(int)rr);
-//        ftm_pwm_duty(MOTOR_FTM,MOTOR_CH_RP,0);
-//    }
-//}
-
-//
-//void play(uint8 cmd)
-//{
-//    uint8 sum = 0xAA, i;
-//    uint8 ch[7][4] = { {0x13, 0x01, 0x1E, 0x00},//vol+++
-//                        {0x07, 0x02, 0x00, 0x01},//start
-//                        {0x07, 0x02, 0x00, 0x02},//ob
-//                        {0x07, 0x02, 0x00, 0x03},//br
-//                        {0x07, 0x02, 0x00, 0x04},//rh
-//                        {0x07, 0x02, 0x00, 0x05},//ch
-//                        {0x07, 0x02, 0x00, 0x06}};//pd
-//    for(i = 0; i < 4; i++)
-//        sum += ch[cmd][i];
-//    uart_putchar(DEBUG_UART, 0xAA);
-//    if(cmd == 0)
-//        uart_putbuff(DEBUG_UART, ch[cmd], 3);
-//    else
-//        uart_putbuff(DEBUG_UART, ch[cmd], 4);
-//    uart_putchar(DEBUG_UART, sum);
-//}

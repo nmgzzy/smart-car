@@ -144,9 +144,11 @@ void data_read(uint8 n)
         obstacle_len2[1]      = parameter[i++];
         obstacle_len3[0]      = parameter[i++];
         //120
-        obstacle_len3[1]      = parameter[i++];
+        obstacle_len3[1]       = parameter[i++];
         obstacle_turn_dir[2]   = parameter[i++];
         cross_time             = parameter[i++];
+        ramp_speed_limit       = parameter[i++];
+        ramp_time_down2        = parameter[i++];
     }
 }
 
@@ -279,6 +281,8 @@ void data_save(uint8 n)
     parameter[i++] = (int16)obstacle_len3[1];
     parameter[i++] = (int16)obstacle_turn_dir[2];
     parameter[i++] = (int16)cross_time;
+    parameter[i++] = (int16)ramp_speed_limit;
+    parameter[i++] = (int16)ramp_time_down2;
 
     FLASH_EraseSector(127 - n);
     FLASH_WriteSector(127 - n,(const uint8 *)parameter,NUM_OF_PARAMETER*2,0);

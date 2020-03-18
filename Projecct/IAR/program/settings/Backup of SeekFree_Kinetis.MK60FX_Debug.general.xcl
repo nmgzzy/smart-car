@@ -1,0 +1,15 @@
+"E:\MyProgram\IAR\setup\arm\bin\armproc.dll" 
+
+"E:\MyProgram\IAR\setup\arm\bin\armsim2.dll" 
+
+"F:\WorkSpace\SmartCarWS\zfK60_Dcar\Projecct\IAR\program\MK60FX_Debug\Exe\SeekFree_Kinetis.out" 
+
+--plugin="E:\MyProgram\IAR\setup\arm\bin\armbat.dll" 
+
+--device_macro="E:\MyProgram\IAR\setup\arm\config\debugger\NXP\Kxx.dmac" 
+
+--device_macro="E:\MyProgram\IAR\setup\arm\config\debugger\NXP\Kxx_Trace.dmac" 
+
+
+
+

@@ -80,5 +80,7 @@ extern uint16 obstacle_len2[2];
 extern uint8 obstacle_len3[2];
 extern uint8 cross_time;
 extern uint8 obstacle_cnt2;
+extern uint16 ramp_speed_limit, ramp_time_down2;
+
 
 #endif
